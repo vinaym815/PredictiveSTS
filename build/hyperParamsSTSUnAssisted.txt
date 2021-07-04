@@ -1,0 +1,11 @@
+# Some constants are present in the universalConsts.h
+# Segments the excitation profile is made up of 
+17
+# stdDev Ai
+0.3
+# lower bounds Ai
+-0.2
+# upper bounds Ai
+1.0
+# Cost Weights: wY, wX, wMuscleEffort, wChairForce, wLimitForce, wZMP, wUnilaterality, wSlip 
+800, 600, 100, 20, 0.4, 10, 20, 0.1, 0.1
