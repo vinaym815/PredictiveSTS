@@ -5,8 +5,7 @@
 
 
 from matplotlib import pyplot as plt
-import numpy as np
-import re
+import numpy as np 
 from fileReader import file
 from fileReader import computePhaseTimes
 
@@ -34,47 +33,51 @@ plt.rcParams.update({
 def plotActuation(ax, file1, file2, file3, file4, file5, file6, file7, file8):
     colors = plt.cm.tab10(np.linspace(0, 1, 8))
     
-    for file, axes in zip((file1, file2), ax):
-        axes.plot(file.getColumn("time"), file.getColumn("soleus"), label="SOL", color="pink")
-        axes.plot(file.getColumn("time"), file.getColumn("gastroc"), label="GAS", color=colors[1])
-        axes.plot(file.getColumn("time"), file.getColumn("tibant"), label="TA", color=colors[2])
-        axes.plot(file.getColumn("time"), file.getColumn("recfem"), label="RF", color=colors[3])
-        axes.plot(file.getColumn("time"), file.getColumn("iliopsoas"), label="ILPSO", color=colors[4])
-        axes.plot(file.getColumn("time"), file.getColumn("hamstrings"), label="HAMS", color=colors[5])
-        axes.plot(file.getColumn("time"), file.getColumn("glut_max"), label="GMAX", color=colors[6])
-        axes.plot(file.getColumn("time"), file.getColumn("vasti"), label="VAS", color=colors[7])        
+    for file_, axes in zip((file1, file2), ax):
+        axes.plot(file_.getColumn("time"), file_.getColumn("soleus"), label="SOL", color="pink")
+        axes.plot(file_.getColumn("time"), file_.getColumn("gastroc"), label="GAS", color=colors[1])
+        axes.plot(file_.getColumn("time"), file_.getColumn("tibant"), label="TA", color=colors[2])
+        axes.plot(file_.getColumn("time"), file_.getColumn("recfem"), label="RF", color=colors[3])
+        axes.plot(file_.getColumn("time"), file_.getColumn("iliopsoas"), label="ILPSO", color=colors[4])
+        axes.plot(file_.getColumn("time"), file_.getColumn("hamstrings"), label="HAMS", color=colors[5])
+        axes.plot(file_.getColumn("time"), file_.getColumn("glut_max"), label="GMAX", color=colors[6])
+        axes.plot(file_.getColumn("time"), file_.getColumn("vasti"), label="VAS", color=colors[7])        
     
-    ax[2].plot(file3.getColumn("time"), file3.getColumn("hip_flexion_moment"), "--",color="green",linewidth=2, label="Hip")
-    ax[2].plot(file4.getColumn("time"), file4.getColumn("glut_max"), label="GMAX", color=colors[6])
-    ax[2].plot(file4.getColumn("time"), file4.getColumn("hamstrings"), label="HAMS", color=colors[5])
-    ax[2].plot(file4.getColumn("time"), file4.getColumn("recfem"), label="RF", color=colors[3])
     ax[2].plot(file4.getColumn("time"), file4.getColumn("iliopsoas"), label="ILPSO", color=colors[4])
+    ax[2].plot(file4.getColumn("time"), file4.getColumn("recfem"), label="RF", color=colors[3])
+    ax[2].plot(file4.getColumn("time"), file4.getColumn("hamstrings"), label="HAMS", color=colors[5])
+    ax[2].plot(file4.getColumn("time"), file4.getColumn("glut_max"), label="GMAX", color=colors[6])
+    ax[2].plot(file3.getColumn("time"), file3.getColumn("hip_flexion_moment"), "--",color="green",linewidth=2, label="Hip")
 
-    ax[3].plot(file3.getColumn("time"), file3.getColumn("knee_angle_moment"), "--",color="darkviolet",linewidth=2, label="Knee")
-    ax[3].plot(file5.getColumn("time"), file5.getColumn("vasti"), label="VAS", color=colors[7])
-    ax[3].plot(file5.getColumn("time"), file5.getColumn("hamstrings"), label="HAMS", color=colors[5])
-    ax[3].plot(file5.getColumn("time"), file5.getColumn("recfem"), label="RF", color=colors[3])
     ax[3].plot(file5.getColumn("time"), file5.getColumn("gastroc"), label="GAS", color=colors[1])
+    ax[3].plot(file5.getColumn("time"), file5.getColumn("recfem"), label="RF", color=colors[3])
+    ax[3].plot(file5.getColumn("time"), file5.getColumn("hamstrings"), label="HAMS", color=colors[5])
+    ax[3].plot(file5.getColumn("time"), file5.getColumn("vasti"), label="VAS", color=colors[7])
+    ax[3].plot(file3.getColumn("time"), file3.getColumn("knee_angle_moment"), "--",color="darkviolet",linewidth=2, label="Knee")
     
-    ax[4].plot(file3.getColumn("time"), file3.getColumn("ankle_angle_moment"), "--",color="deepskyblue",linewidth=2, label="Ankle")
-    ax[4].plot(file6.getColumn("time"), file6.getColumn("tibant"), label="TA", color=colors[2])
+    ax[4].plot(file6.getColumn("time"), file6.getColumn("gastroc"), label="GAS", color=colors[1])
     ax[4].plot(file6.getColumn("time"), file6.getColumn("soleus"), label="SOL", color="pink")
-    ax[4].plot(file6.getColumn("time"), file6.getColumn("gastroc"), label="GAS", color=colors[6])
+    ax[4].plot(file6.getColumn("time"), file6.getColumn("tibant"), label="TA", color=colors[2])
+    ax[4].plot(file3.getColumn("time"), file3.getColumn("ankle_angle_moment"), "--",color="deepskyblue",linewidth=2, label="Ankle")
     
     (e1, e2, e3) = computePhaseTimes(file2, file7, file8)
     limits = [(-0.05, 1.05), (0.0, 16000), (-175, 120), (-320, 110), (-151, 150)]
     
-    for axes, limit in zip(ax, limits):
+    for axes, limit, i in zip(ax, limits, range(len(limits))):
         axes.plot([e1,e1], limit, linestyle='-.', color="k", alpha=0.3)
         axes.plot([e2,e2], limit, linestyle='-.', color="k", alpha=0.3)
         axes.plot([e3,e3], limit, linestyle='-.', color="k", alpha=0.3)
-    
-    ax[0].legend(loc="upper right", fontsize = 6, handlelength=1)
-    ax[1].legend(loc="upper right", fontsize = 6, handlelength=2)
-    ax[2].legend(loc="lower right", fontsize = 6, handlelength=2)
-    ax[3].legend(loc="lower right", fontsize = 6, handlelength=2)
-    ax[4].legend(loc="lower right", fontsize = 6, handlelength=2)
-    
+        
+        handlelength=2.5
+        loc = "lower right"        
+        if i==0:
+            handlelength=1
+        if (i== 0 or i ==1):
+            loc = "upper right"
+            
+        handles, labels = axes.get_legend_handles_labels()
+        axes.legend(handles[::-1], labels[::-1], loc=loc, fontsize = 6, handlelength=handlelength)
+
     return None
 
 

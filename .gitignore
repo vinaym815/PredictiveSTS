@@ -19,3 +19,4 @@ build/*.sto
 build/*.mod
 build/*.err
 docs/ProcessedData/*/GUIAnalysis/
+docs/Plots/__pycache__/*
