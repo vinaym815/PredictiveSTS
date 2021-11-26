@@ -126,7 +126,7 @@
 					<!--Set of wrap objects fixed to this body that GeometryPaths can wrap over.This property used to be a member of Body but was moved up with the introduction of Frames.-->
 					<WrapObjectSet name="wrapobjectset">
 						<objects>
-							<WrapCylinderNew name="Gmax2_at_pelvis_r">
+							<WrapCylinder name="Gmax2_at_pelvis_r">
 								<!--Whether or not the WrapObject is considered active in computing paths-->
 								<active>true</active>
 								<!--Body-fixed Euler angle sequence for the orientation of the WrapObject-->
@@ -153,8 +153,8 @@
 								<radius>0.040000000000000001</radius>
 								<!--The length of the cylinder.-->
 								<length>0.10000000000000001</length>
-							</WrapCylinderNew>
-							<WrapCylinderNew name="PS_at_brim_r">
+							</WrapCylinder>
+							<WrapCylinder name="PS_at_brim_r">
 								<!--Whether or not the WrapObject is considered active in computing paths-->
 								<active>true</active>
 								<!--Body-fixed Euler angle sequence for the orientation of the WrapObject-->
@@ -181,7 +181,7 @@
 								<radius>0.050000000000000003</radius>
 								<!--The length of the cylinder.-->
 								<length>0.10000000000000001</length>
-							</WrapCylinderNew>
+							</WrapCylinder>
 						</objects>
 						<groups />
 					</WrapObjectSet>
@@ -221,7 +221,7 @@
 					<!--Set of wrap objects fixed to this body that GeometryPaths can wrap over.This property used to be a member of Body but was moved up with the introduction of Frames.-->
 					<WrapObjectSet name="wrapobjectset">
 						<objects>
-							<WrapCylinderNew name="GasMed_at_condyles_r">
+							<WrapCylinder name="GasMed_at_condyles_r">
 								<!--Whether or not the WrapObject is considered active in computing paths-->
 								<active>true</active>
 								<!--Body-fixed Euler angle sequence for the orientation of the WrapObject-->
@@ -248,8 +248,8 @@
 								<radius>0.025000000000000001</radius>
 								<!--The length of the cylinder.-->
 								<length>0.10000000000000001</length>
-							</WrapCylinderNew>
-							<WrapCylinderNew name="KnExt_at_fem_r">
+							</WrapCylinder>
+							<WrapCylinder name="KnExt_at_fem_r">
 								<!--Whether or not the WrapObject is considered active in computing paths-->
 								<active>true</active>
 								<!--Body-fixed Euler angle sequence for the orientation of the WrapObject-->
@@ -276,7 +276,7 @@
 								<radius>0.025000000000000001</radius>
 								<!--The length of the cylinder.-->
 								<length>0.10000000000000001</length>
-							</WrapCylinderNew>
+							</WrapCylinder>
 						</objects>
 						<groups />
 					</WrapObjectSet>
@@ -331,7 +331,7 @@
 					<!--Set of wrap objects fixed to this body that GeometryPaths can wrap over.This property used to be a member of Body but was moved up with the introduction of Frames.-->
 					<WrapObjectSet name="wrapobjectset">
 						<objects>
-							<WrapCylinderNew name="GasMed_at_shank_r">
+							<WrapCylinder name="GasMed_at_shank_r">
 								<!--Whether or not the WrapObject is considered active in computing paths-->
 								<active>true</active>
 								<!--Body-fixed Euler angle sequence for the orientation of the WrapObject-->
@@ -358,8 +358,8 @@
 								<radius>0.058999999999999997</radius>
 								<!--The length of the cylinder.-->
 								<length>0.10000000000000001</length>
-							</WrapCylinderNew>
-							<WrapCylinderNew name="SM_at_condyles_r">
+							</WrapCylinder>
+							<WrapCylinder name="SM_at_condyles_r">
 								<!--Whether or not the WrapObject is considered active in computing paths-->
 								<active>true</active>
 								<!--Body-fixed Euler angle sequence for the orientation of the WrapObject-->
@@ -386,7 +386,7 @@
 								<radius>0.034500000000000003</radius>
 								<!--The length of the cylinder.-->
 								<length>0.10000000000000001</length>
-							</WrapCylinderNew>
+							</WrapCylinder>
 						</objects>
 						<groups />
 					</WrapObjectSet>

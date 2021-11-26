@@ -27,7 +27,7 @@ For more information on the cost functions used to generate these motions please
 
 ### Dependencies:
 1. libcmaes (https://github.com/CMA-ES/libcmaes/tree/2c2f56068c562a3967fe7ccb4b42e48dd1d7be83)
-2. opensim-core (https://github.com/opensim-org/opensim-core/tree/49233a6230b96a70a4142a875ea0ed23ecd6032f) 
+2. opensim-core (https://github.com/opensim-org/opensim-core/releases/tag/4.3) 
 
 ## File Naming Convention
 - **"Assisted/UnAssisted"** is used within the file names to indicate whether it is supposed to work or not with external assistance.

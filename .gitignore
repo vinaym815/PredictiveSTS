@@ -1,4 +1,5 @@
 .vscode/
+CMakeListsNewPC.txt
 build/.ninja_deps
 build/.ninja_log
 build/build.ninja
@@ -18,5 +19,6 @@ build/*.mot
 build/*.sto
 build/*.mod
 build/*.err
+build/results/
 docs/ProcessedData/*/GUIAnalysis/
 docs/Plots/__pycache__/*

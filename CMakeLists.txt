@@ -4,7 +4,7 @@ project(stsSynthesis,)
 cmake_minimum_required(VERSION 3.2)
 
 set( PROJ_SOURCES "src/main.cpp" "src/modelFunsCommon.cpp" "src/modelFunsStanding.cpp" "src/modelFunsSitting.cpp" "src/parameterization.cpp" 
-					"src/MtxNew.cpp" "src/WrapCylinderNew.cpp" "src/WrapMathNew.cpp" "src/RegisterTypes_osimPlugin.cpp" "src/seatConstraintHandler.cpp"
+					"src/RegisterTypes_osimPlugin.cpp" "src/seatConstraintHandler.cpp"
 					"src/termination.cpp")
 
 set( PROJ_INC "inc/" )
@@ -17,21 +17,21 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
 
 include_directories(
 	${PROJ_INC}
-	/home/vinay/OpenSim/moco_dependencies_install/opensim-core/sdk/spdlog/include
-	/home/vinay/OpenSim/moco_dependencies_install/opensim-core/sdk/Simbody/include/simbody
-	/home/vinay/OpenSim/moco_dependencies_install/opensim-core/sdk/include
-	/home/vinay/OpenSim/moco_dependencies_install/opensim-core/sdk/include/OpenSim
-	/home/vinay/OpenSim/moco_dependencies_install/opensim-core/sdk/include/OpenSim/Common
-	/home/vinay/OpenSim/moco_dependencies_install/opensim-core/sdk/include/OpenSim/Simulation/Wrap
-	/home/vinay/Repos/libcmaes/src
-	/home/vinay/Repos/libcmaes/build/src/
+	/home/opensim/Libs/opensim_dependencies_install/spdlog/include
+	/home/opensim/Libs/opensim_dependencies_install/simbody/include/simbody
+	/home/opensim/Libs/opensim-install/include
+	/home/opensim/Libs/opensim-install/include/OpenSim
+	/home/opensim/Libs/opensim-install/include/OpenSim/Common
+	/home/opensim/Libs/opensim-install/include/OpenSim/Simulation/Wrap
+	/home/opensim/Libs/libcmaes/src	
+	/home/opensim/Libs/libcmaes/build/src
 	/usr/include/eigen3)
 
 link_directories(
-	/home/vinay/OpenSim/moco_dependencies_install/opensim-core/sdk/lib
-	/home/vinay/OpenSim/moco_dependencies_install/opensim-core/sdk/spdlog/lib
-	/home/vinay/OpenSim/moco_dependencies_install/opensim-core/sdk/Simbody/lib
-	/home/vinay/Repos/libcmaes/build/src/)
+	/home/opensim/Libs/opensim-install/lib
+	/home/opensim/Libs/opensim_dependencies_install/spdlog/lib
+	/home/opensim/Libs/opensim_dependencies_install/simbody/lib
+	/home/opensim/Libs/libcmaes/build/src/)
 
 add_executable( main ${PROJ_SOURCES} )
 

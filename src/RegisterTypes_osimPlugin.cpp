@@ -25,7 +25,6 @@
 #include <OpenSim/Common/Object.h>
 #include "RegisterTypes_osimPlugin.h"
 
-#include "WrapCylinderNew.h"
 #include "activationPointActuator.h"
 
 using namespace OpenSim;
@@ -40,7 +39,6 @@ static dllObjectInstantiator instantiator;
  */
 OSIMPLUGIN_API void RegisterTypes_osimPlugin()
 {
-    Object::registerType( WrapCylinderNew() );
     Object::registerType( ActivationPointActuator() );
 }
 

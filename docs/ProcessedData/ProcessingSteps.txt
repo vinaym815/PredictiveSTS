@@ -1,8 +1,7 @@
 These processing are required to get the data working with OpenSim GUI 4.1
 Open __.osim:
-    1) WrapCylinderNew -> WrapCylinder
-    2) Disable seatConstraint
-    3) Delete point actuator from assited Model
+    1) Disable seatConstraint
+    2) Delete point actuator from assited Model
 
 Open __.sto(MotionFile):
     1) /jointset/ankle/ankle_angle/value -> ankle_angle
