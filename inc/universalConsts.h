@@ -53,7 +53,7 @@
 
 // Simulation Setup
 const double mu_static = 0.8;               // coefficient of static friction
-const double simulationDuration = 1.6;
+const double simulationDuration = 3.2;
 const double samplingDt = 0.01;             // The rate at which excitation signal is sampled(sec) from the parameterization function
 const double reportInterval = 0.001;         // Reporting Interval of table reporters(secs). May be made noisy to avoid peculiarities
 const double integratorAccuracy = 1.0e-4;   // Desired Integration Accuracy
