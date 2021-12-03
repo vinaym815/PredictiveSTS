@@ -115,13 +115,13 @@ int main(int argc, const char *argv[])
         };
 
         // CMA parameters
-        CMAParameters<GenoPhenoType> cmaparams(initGuess, initStepSize, -1, lowerBound, upperBound);
+        CMAParameters<GenoPhenoType> cmaparams(initGuess, initStepSize, 120, lowerBound, upperBound);
         cmaparams.set_algo(aCMAES);
         cmaparams.set_fplot(plotFile);
         cmaparams.set_max_hist(histSize);
         cmaparams.set_ftolerance(fTolerance);
         cmaparams.set_max_iter(maxIter);
-        cmaparams.set_noisy();
+        //cmaparams.set_noisy();
         cmaparams.set_mt_feval(true);
 
         // Running the optimization nRestart times

@@ -4,7 +4,7 @@
 #include "cmaes.h"
 
 #define Standing                            // Commenting will switch to Sitting
-#define Assisted                            // Commenting will switch to unAssisted
+//#define Assisted                            // Commenting will switch to unAssisted
 
 // Sets up model and number of variables
 #ifdef Assisted
@@ -22,15 +22,15 @@
   #endif
 
 #else
-  //const std::string modelName = "vin_00pct.osim";
-  //const std::string newModelName = "vin_00pct.osim.mod";
-  //const std::string newModelNameReplay = "vin_00pct_replay.osim.mod";
+  const std::string modelName = "vin_00Npct.osim";
+  const std::string newModelName = "vin_00Npct.osim.mod";
+  const std::string newModelNameReplay = "vin_00Npct_replay.osim.mod";
   //const std::string modelName = "vin_20pct.osim";
   //const std::string newModelName = "vin_20pct.osim.mod";
   //const std::string newModelNameReplay = "vin_20pct_replay.osim.mod";
-  const std::string modelName = "vin_40pct.osim";
-  const std::string newModelName = "vin_40pct.osim.mod";
-  const std::string newModelNameReplay = "vin_40pct_replay.osim.mod";
+  //const std::string modelName = "vin_40pct.osim";
+  //const std::string newModelName = "vin_40pct.osim.mod";
+  //const std::string newModelNameReplay = "vin_40pct_replay.osim.mod";
   //const std::string modelName = "vin_60pct.osim";
   //const std::string newModelName = "vin_60pct.osim.mod";
   //const std::string newModelNameReplay = "vin_60pct_replay.osim.mod";
@@ -53,7 +53,7 @@
 
 // Simulation Setup
 const double mu_static = 0.8;               // coefficient of static friction
-const double simulationDuration = 3.2;
+const double simulationDuration = 1.6;
 const double samplingDt = 0.01;             // The rate at which excitation signal is sampled(sec) from the parameterization function
 const double reportInterval = 0.001;         // Reporting Interval of table reporters(secs). May be made noisy to avoid peculiarities
 const double integratorAccuracy = 1.0e-4;   // Desired Integration Accuracy

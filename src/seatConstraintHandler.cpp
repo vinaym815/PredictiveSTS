@@ -47,6 +47,11 @@ SimTK::Real ReleaseSeatConstraint::getValue(const SimTK::State& s) const{
 void ReleaseSeatConstraint::handleEvent(SimTK::State& s, SimTK::Real accuracy, bool& terminate) const
 {
 	_model.updMatterSubsystem().updConstraint(_index).disable(s);
-	std::cout << "Event Triggered (Seat Constraint Release) :" << s.getTime() << std::endl;
 	terminate = false;
+	seatReleaseTime = s.getTime(); 
+	std::cout << "Releasing Seat Constraint : " << seatReleaseTime << std::endl;
+}
+
+double ReleaseSeatConstraint::getSeatRleaseTime() const{
+	return seatReleaseTime;
 }

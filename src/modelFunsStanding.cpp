@@ -4,7 +4,8 @@
 /*
 Computes the cost for standing simulation
 */
-void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel, const SimTK::State si0) {
+void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel, const SimTK::State si0, 
+                          const double seatReleaseTime, const double tF){
 
   OpenSim::TableReporterVec3 *comReporter = dynamic_cast<OpenSim::TableReporterVec3*>(
                                                     &osimModel.updComponent("comReporter"));
@@ -37,7 +38,6 @@ void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel,
   const std::vector<double> forceTimeVec(forceTimeArray.get(), forceTimeArray.get()+forceTimeArray.getSize());
 
   const std::vector<double> &reporterTimeVec = comReporter->getTable().getIndependentColumn();
-  const double tF = reporterTimeVec.back();
   const double tau_ChairForce = tF*tau_ChairForce_pct;
   const double tau_Boundary = tF*tau_Boundary_pct;
 
@@ -45,14 +45,26 @@ void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel,
   std::vector<double> wTauChairForceVec = expWeightVec(tau_ChairForce, forceTimeVec, tF);
 
   const SimTK::Vec3 feetCosts = computeCostFeet(feetWrenchTimesSeries, heelPos, toesPos);
-  const SimTK::Vec2 chairCosts= computeCostsChair(wTauChairForceVec, forceStorage); 
+  const SimTK::Vec2 chairCosts= computeCostsChair(wTauChairForceVec, forceStorage);
 
   //// Filling up the cost matrix
-  costs[0] = computeCostComY(wTauBoundaryVec, comTimeSeries);
-  costs[1] = computeCostComX(wTauBoundaryVec, comTimeSeries, feetPos);
-  costs[2] = computeCostActivation(activationTimeSeries);
-  costs[3] = computeCostDiffActivation(activationTimeSeries);
-  costs[4] = chairCosts[0];
+  if(tF<simulationDuration-1e-2){
+    const size_t indCom = comTimeSeries.getColumnIndex("/|com_velocity");
+    auto comTPosVec = comTimeSeries.getDependentColumnAtIndex(indCom);
+    const SimTK::Vec3 comTf = comTPosVec[comTPosVec.nrow()-1];
+    const double comVel = std::sqrt((comTf[0]*comTf[0]) + (comTf[1]*comTf[1])); 
+
+    costs[0] = -10;
+    costs[1] = 250/500*comVel;
+    costs[4] = 0;
+  }
+  else{
+    costs[0] = computeCostComY(wTauBoundaryVec, comTimeSeries);
+    costs[1] = computeCostComX(wTauBoundaryVec, comTimeSeries, feetPos);
+    costs[4] = chairCosts[0];
+  }
+  costs[2] = computeCostActivation(activationTimeSeries, seatReleaseTime);
+  costs[3] = computeCostDiffActivation(activationTimeSeries, seatReleaseTime);
   costs[5] = computeCostLimitTorque(forceStorage);
   costs[6] = feetCosts[0];
   costs[7] = feetCosts[1];

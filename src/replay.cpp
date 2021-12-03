@@ -49,7 +49,7 @@ int main(int argc, char *argv[]){
   }
 
   #ifdef Standing
-    const std::vector<double> costWeights{800, 600, 100, 20, 0.4, 10, 20, 0.1, 0.1, 0.2};
+    const std::vector<double> costWeights{800, 600, 100, 50, 0.4, 10, 20, 0.1, 0.1, 0.2};
   #else
     const std::vector<double> costWeights{5, 4, 200, 40, 10, 20, 1.0, 1.0, 1.0};
   #endif
@@ -85,7 +85,7 @@ int main(int argc, char *argv[]){
         if(visualizeResults){
           locker.lock();
             std::cout << int(inVec[0]) << " : " << totalCost << std::endl;
-            //std::for_each(costs.begin(), costs.end(), [](const double cost){std::cout << cost << std::endl;});
+            std::for_each(costs.begin(), costs.end(), [](const double cost){std::cout << cost << std::endl;});
             std::cout <<std::endl;
           locker.unlock();
         }

@@ -187,6 +187,8 @@ std::vector<double> runSimulation(OpenSim::Model &osimModel, const Parameterizat
     manager.initialize(si);
 
     manager.integrate(simulationDuration);
+    const double terminationTime = angleTermination->getTerminationTime();
+    const double seatReleaseTime = releaseSeatConstraint->getSeatRleaseTime();
 
     // The computingCosts function clears the reporter memories. Therefore, exports needs to be done before the cost is computed
     #ifdef Standing
@@ -201,7 +203,7 @@ std::vector<double> runSimulation(OpenSim::Model &osimModel, const Parameterizat
                                                     &osimModel.getComponent("/comReporter"));
         OpenSim::STOFileAdapter_<SimTK::Vec3>::write(comReporter->getTable(), outputPrefix+"_com.mot");
       }
-        computeCostsStanding(costs, osimModel, si0);
+        computeCostsStanding(costs, osimModel, si0, seatReleaseTime, terminationTime);
     #else
         computeCostsSitting(osimModel, si0, costs);
     #endif
@@ -245,11 +247,12 @@ double computeCostLimitTorque(const OpenSim::Storage &forceStorage){
 }
 
 // Computes the cost associated with muscle activation
-double computeCostActivation(const OpenSim::TimeSeriesTable &activationTimeSeries){
+double computeCostActivation(const OpenSim::TimeSeriesTable &activationTimeSeries, const double chairContactLossTime){
   double result{0};
+  const size_t offset = activationTimeSeries.getNearestRowIndexForTime(chairContactLossTime);
   for(size_t i=0; i<activationTimeSeries.getNumColumns(); ++i){
     SimTK::VectorView activVec = activationTimeSeries.getDependentColumnAtIndex(i);
-    result += std::inner_product(activVec.begin(), activVec.end(), activVec.begin(), 0.0);
+    result += std::inner_product(activVec.begin(), activVec.end() - offset, activVec.begin(), 0.0);
   }
 
   // Averaging over all muscles
@@ -258,12 +261,13 @@ double computeCostActivation(const OpenSim::TimeSeriesTable &activationTimeSerie
 }
 
 // Computes the cost associated with rate of change of muscle activation
-double computeCostDiffActivation(const OpenSim::TimeSeriesTable &activationTimeSeries){
+double computeCostDiffActivation(const OpenSim::TimeSeriesTable &activationTimeSeries, const double chairContactLossTime){
   double result{0};
+  const size_t offset = activationTimeSeries.getNearestRowIndexForTime(chairContactLossTime);
   for(size_t i=0; i<activationTimeSeries.getNumColumns(); ++i){
     SimTK::VectorView activVec = activationTimeSeries.getDependentColumnAtIndex(i);
     const std::vector<double> dActivVec = dVector(activVec);
-    result += std::inner_product(dActivVec.begin(), dActivVec.end(), dActivVec.begin(), 0.0);
+    result += std::inner_product(dActivVec.begin()+offset, dActivVec.end(), dActivVec.begin()+offset, 0.0);
   }
 
   // Averaging over all Actuators

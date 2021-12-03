@@ -33,7 +33,8 @@ std::vector<double> runSimulation(OpenSim::Model &osimModel, const Parameterizat
 // The model reference is not const as we need to clear the reporter tables
 #ifdef Standing
 
-  void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel, const SimTK::State siFinal);
+  void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel, const SimTK::State siFinal, 
+                            const double seatReleaseTime, const double tF);
   double computeCostComY(const std::vector<double> &weightVec, const OpenSim::TimeSeriesTableVec3 &comTimeSeries);
   double computeCostComX(const std::vector<double> &weightVec, const OpenSim::TimeSeriesTableVec3 &comTimeSeries, 
                           const SimTK::Vec3 feetPos);
@@ -52,8 +53,8 @@ std::vector<double> runSimulation(OpenSim::Model &osimModel, const Parameterizat
 #endif
 
 //// Computes the individual costs
-double computeCostActivation(const OpenSim::TimeSeriesTable &activationTimeSeries);
-double computeCostDiffActivation(const OpenSim::TimeSeriesTable &activationTimeSeries);
+double computeCostActivation(const OpenSim::TimeSeriesTable &activationTimeSeries, const double chairContactLossTime);
+double computeCostDiffActivation(const OpenSim::TimeSeriesTable &activationTimeSeries, const double chairContactLossTime);
 double computeCostLimitTorque(const OpenSim::Storage &forceStorage);
 SimTK::Vec3 computeCostFeet(const OpenSim::TimeSeriesTable_<SimTK::SpatialVec> &feetWrenchTimeSeries, const SimTK::Vec3 heelPos, const SimTK::Vec3 toesPos);
 #ifdef Assisted

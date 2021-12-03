@@ -17,4 +17,9 @@ SimTK::Real TerminateSimulation::getValue(const SimTK::State &s) const {
 
 void TerminateSimulation::handleEvent(SimTK::State &s, SimTK::Real accuracy, bool& terminate) const {
     terminate = true;
+    teminationTime = s.getTime();
+}
+
+double TerminateSimulation::getTerminationTime() const{
+    return teminationTime;
 }
