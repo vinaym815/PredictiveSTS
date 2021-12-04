@@ -14,7 +14,7 @@
 
   const int numExtFuncs = 10;                  // Number of unique excitation functions
   #ifdef Standing
-    const size_t numWeights = 10;
+    const size_t numWeights = 11;
     const int numHyperParams = 4+numWeights;
   #else
     const size_t numWeights = 9;
@@ -22,9 +22,9 @@
   #endif
 
 #else
-  const std::string modelName = "vin_00Npct.osim";
-  const std::string newModelName = "vin_00Npct.osim.mod";
-  const std::string newModelNameReplay = "vin_00Npct_replay.osim.mod";
+  const std::string modelName = "vin_00pct.osim";
+  const std::string newModelName = "vin_00pct.osim.mod";
+  const std::string newModelNameReplay = "vin_00pct_replay.osim.mod";
   //const std::string modelName = "vin_20pct.osim";
   //const std::string newModelName = "vin_20pct.osim.mod";
   //const std::string newModelNameReplay = "vin_20pct_replay.osim.mod";
@@ -37,7 +37,7 @@
 
   const int numExtFuncs = 8;                  // Number of unique excitation functions
   #ifdef Standing
-      const size_t numWeights = 9;
+      const size_t numWeights = 10;
       const int numHyperParams = 4+numWeights;
   #else
       const size_t numWeights = 8;

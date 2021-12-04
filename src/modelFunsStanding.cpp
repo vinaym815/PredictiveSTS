@@ -49,28 +49,25 @@ void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel,
 
   //// Filling up the cost matrix
   if(tF<simulationDuration-1e-2){
-    const size_t indCom = comTimeSeries.getColumnIndex("/|com_velocity");
-    auto comTPosVec = comTimeSeries.getDependentColumnAtIndex(indCom);
-    const SimTK::Vec3 comTf = comTPosVec[comTPosVec.nrow()-1];
-    const double comVel = std::sqrt((comTf[0]*comTf[0]) + (comTf[1]*comTf[1])); 
-
-    costs[0] = -10;
-    costs[1] = 250/500*comVel;
-    costs[4] = 0;
+    costs[0] = -1;
+    costs[1] = 0;
+    costs[2] = computeCostComVel(wTauBoundaryVec, comTimeSeries);
+    costs[3] = 0;
   }
   else{
     costs[0] = computeCostComY(wTauBoundaryVec, comTimeSeries);
     costs[1] = computeCostComX(wTauBoundaryVec, comTimeSeries, feetPos);
-    costs[4] = chairCosts[0];
+    costs[2] = 0;
+    costs[3] = chairCosts[0];
   }
-  costs[2] = computeCostActivation(activationTimeSeries, seatReleaseTime);
-  costs[3] = computeCostDiffActivation(activationTimeSeries, seatReleaseTime);
-  costs[5] = computeCostLimitTorque(forceStorage);
-  costs[6] = feetCosts[0];
-  costs[7] = feetCosts[1];
-  costs[8] = feetCosts[2] + chairCosts[1];
+  costs[4] = computeCostActivation(activationTimeSeries, seatReleaseTime);
+  costs[5] = computeCostDiffActivation(activationTimeSeries, seatReleaseTime);
+  costs[6] = computeCostLimitTorque(forceStorage);
+  costs[7] = feetCosts[0];
+  costs[8] = feetCosts[1];
+  costs[9] = feetCosts[2] + chairCosts[1];
   #ifdef Assisted
-    costs[9] = computeCostAssistance(forceStorage);
+    costs[10] = computeCostAssistance(forceStorage);
   #endif
 
   //// Clearing the reporters
@@ -84,12 +81,12 @@ double computeCostComY(const std::vector<double> &weightVec, const OpenSim::Time
   auto comTPosVec = comTimeSeries.getDependentColumnAtIndex(indCom);
   const SimTK::Vec3 comT0 = comTPosVec[0];
 
-  const double result = std::inner_product(weightVec.begin(), weightVec.end(), comTPosVec.begin(), 0.0, std::plus<double>(),
+  double result = std::inner_product(weightVec.begin(), weightVec.end(), comTPosVec.begin(), 0.0, std::plus<double>(),
                                           [&comT0](const double &w, const SimTK::Vec3 &comT){
-                                            return (comT0[1] - comT[1])*reportInterval;
+                                            return (comT0[1] - comT[1]);
                                           });
+  result *= reportInterval;
   return result;
-
 }
 
 double computeCostComX(const std::vector<double> &weightVec, const OpenSim::TimeSeriesTableVec3 &comTimeSeries, 
@@ -98,10 +95,23 @@ double computeCostComX(const std::vector<double> &weightVec, const OpenSim::Time
   auto comTPosVec = comTimeSeries.getDependentColumnAtIndex(indCom);
   const SimTK::Vec3 comT0 = comTPosVec[0];
 
-  const double result = std::inner_product(weightVec.begin(), weightVec.end(), comTPosVec.begin(), 0.0, std::plus<double>(),
+  double result = std::inner_product(weightVec.begin(), weightVec.end(), comTPosVec.begin(), 0.0, std::plus<double>(),
                                           [&comT0, &feetPos](const double &w, const SimTK::Vec3 &comT){
-                                            return fabs(feetPos[0] - comT[0])*reportInterval;
+                                            return fabs(feetPos[0] - comT[0]);
                                           });
+  result *= reportInterval;                
+  return result;
+}
+
+double computeCostComVel(const std::vector<double> &weightVec, const OpenSim::TimeSeriesTableVec3 &comTimeSeries){
+  const size_t indCom = comTimeSeries.getColumnIndex("/|com_velocity");
+  auto comVelVec = comTimeSeries.getDependentColumnAtIndex(indCom);
+  double result = std::inner_product(weightVec.begin(), weightVec.end(), comVelVec.begin(), 0.0, std::plus<double>(),
+                                          [](const double &w, const SimTK::Vec3 &comVelT){
+                                            return (w*std::sqrt(comVelT[0]*comVelT[0] + comVelT[1]*comVelT[1]));
+                                          });
+
+  result *= reportInterval;
   return result;
 }
 

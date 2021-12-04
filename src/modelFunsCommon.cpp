@@ -249,7 +249,8 @@ double computeCostLimitTorque(const OpenSim::Storage &forceStorage){
 // Computes the cost associated with muscle activation
 double computeCostActivation(const OpenSim::TimeSeriesTable &activationTimeSeries, const double chairContactLossTime){
   double result{0};
-  const size_t offset = activationTimeSeries.getNearestRowIndexForTime(chairContactLossTime);
+  //const size_t offset = activationTimeSeries.getNearestRowIndexForTime(chairContactLossTime);
+  const size_t offset = 0;
   for(size_t i=0; i<activationTimeSeries.getNumColumns(); ++i){
     SimTK::VectorView activVec = activationTimeSeries.getDependentColumnAtIndex(i);
     result += std::inner_product(activVec.begin(), activVec.end() - offset, activVec.begin(), 0.0);
@@ -263,7 +264,8 @@ double computeCostActivation(const OpenSim::TimeSeriesTable &activationTimeSerie
 // Computes the cost associated with rate of change of muscle activation
 double computeCostDiffActivation(const OpenSim::TimeSeriesTable &activationTimeSeries, const double chairContactLossTime){
   double result{0};
-  const size_t offset = activationTimeSeries.getNearestRowIndexForTime(chairContactLossTime);
+  //const size_t offset = activationTimeSeries.getNearestRowIndexForTime(chairContactLossTime);
+  const size_t offset = 0;
   for(size_t i=0; i<activationTimeSeries.getNumColumns(); ++i){
     SimTK::VectorView activVec = activationTimeSeries.getDependentColumnAtIndex(i);
     const std::vector<double> dActivVec = dVector(activVec);

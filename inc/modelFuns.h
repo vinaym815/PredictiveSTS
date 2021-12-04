@@ -38,6 +38,7 @@ std::vector<double> runSimulation(OpenSim::Model &osimModel, const Parameterizat
   double computeCostComY(const std::vector<double> &weightVec, const OpenSim::TimeSeriesTableVec3 &comTimeSeries);
   double computeCostComX(const std::vector<double> &weightVec, const OpenSim::TimeSeriesTableVec3 &comTimeSeries, 
                           const SimTK::Vec3 feetPos);
+  double computeCostComVel(const std::vector<double> &weightVec, const OpenSim::TimeSeriesTableVec3 &comTimeSeries);
   SimTK::Vec2 computeCostsChair(const std::vector<double> &weightVec, const OpenSim::Storage &forceStorage);
 
   // get exponentially increase weight 

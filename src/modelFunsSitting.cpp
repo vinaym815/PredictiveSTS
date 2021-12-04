@@ -34,8 +34,8 @@ void computeCostsSitting(OpenSim::Model &osimModel, const SimTK::State si0, std:
   // Filling up the cost matrix
   costs[0] = costsCoordinate[0];
   costs[1] = costsCoordinate[1];
-  costs[2] = computeCostActivation(activationTimeSeries);
-  costs[3] = computeCostDiffActivation(activationTimeSeries);
+  costs[2] = computeCostActivation(activationTimeSeries, simulationDuration);
+  costs[3] = computeCostDiffActivation(activationTimeSeries, simulationDuration);
   costs[4] = computeCostLimitTorque(forceStorage);
   costs[5] = feetCosts[0];
   costs[6] = feetCosts[1];
