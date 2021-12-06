@@ -25,16 +25,27 @@ void addReporters(OpenSim::Model &osimModel){
   for(size_t i=0; i<muscleSet.getSize(); ++i){
     muscleActivReporter->addToReport(muscleSet[i].getOutput("activation"));
   }
-
-  //// Adding activation from the first order dynamics of the external assistance
   #ifdef Assisted
     OpenSim::ActivationPointActuator *assistFx = dynamic_cast<OpenSim::ActivationPointActuator *>(&osimModel.updForceSet().get("assistFx"));
     OpenSim::ActivationPointActuator *assistFy = dynamic_cast<OpenSim::ActivationPointActuator *>(&osimModel.updForceSet().get("assistFy"));
     muscleActivReporter->addToReport(assistFx->getOutput("activation"));
     muscleActivReporter->addToReport(assistFy->getOutput("activation"));
   #endif
-
   osimModel.addComponent(muscleActivReporter);
+
+  //// Adding coordiante value and speed reporter
+  const OpenSim::CoordinateSet &coordSet = osimModel.getCoordinateSet();
+  const std::vector<int> coordinateIndices{coordSet.getIndex("hip_flexion"), 
+                                            coordSet.getIndex("knee_angle"), 
+                                            coordSet.getIndex("ankle_angle")};
+  OpenSim::TableReporter* coordReporter = new OpenSim::TableReporter();
+  coordReporter->set_report_time_interval(reportInterval);
+  coordReporter->setName("coordReporter");
+  for(auto ind : coordinateIndices){
+    coordReporter->addToReport(coordSet[ind].getOutput("value"));
+    coordReporter->addToReport(coordSet[ind].getOutput("speed"));
+  }
+  osimModel.addComponent(coordReporter);
 
   #ifdef Standing
     //// Adding the COM position and velocity reporter
@@ -44,20 +55,6 @@ void addReporters(OpenSim::Model &osimModel){
     comReporter->addToReport(osimModel.getOutput("com_position"));
     comReporter->addToReport(osimModel.getOutput("com_velocity"));
     osimModel.addComponent(comReporter);
-  #else
-    //// Adding coordiante value and speed reporter
-    const OpenSim::CoordinateSet &coordSet = osimModel.getCoordinateSet();
-    const std::vector<int> coordinateIndices{coordSet.getIndex("hip_flexion"), 
-                                              coordSet.getIndex("knee_angle"), 
-                                              coordSet.getIndex("ankle_angle")};
-    OpenSim::TableReporter* coordReporter = new OpenSim::TableReporter();
-    coordReporter->set_report_time_interval(reportInterval);
-    coordReporter->setName("coordReporter");
-    for(auto ind : coordinateIndices){
-      coordReporter->addToReport(coordSet[ind].getOutput("value"));
-      coordReporter->addToReport(coordSet[ind].getOutput("speed"));
-    }
-    osimModel.addComponent(coordReporter);
   #endif
 };
 
@@ -249,8 +246,7 @@ double computeCostLimitTorque(const OpenSim::Storage &forceStorage){
 // Computes the cost associated with muscle activation
 double computeCostActivation(const OpenSim::TimeSeriesTable &activationTimeSeries, const double chairContactLossTime){
   double result{0};
-  //const size_t offset = activationTimeSeries.getNearestRowIndexForTime(chairContactLossTime);
-  const size_t offset = 0;
+  const size_t offset = activationTimeSeries.getNumRows() - activationTimeSeries.getNearestRowIndexForTime(chairContactLossTime);
   for(size_t i=0; i<activationTimeSeries.getNumColumns(); ++i){
     SimTK::VectorView activVec = activationTimeSeries.getDependentColumnAtIndex(i);
     result += std::inner_product(activVec.begin(), activVec.end() - offset, activVec.begin(), 0.0);
@@ -264,8 +260,7 @@ double computeCostActivation(const OpenSim::TimeSeriesTable &activationTimeSerie
 // Computes the cost associated with rate of change of muscle activation
 double computeCostDiffActivation(const OpenSim::TimeSeriesTable &activationTimeSeries, const double chairContactLossTime){
   double result{0};
-  //const size_t offset = activationTimeSeries.getNearestRowIndexForTime(chairContactLossTime);
-  const size_t offset = 0;
+  const size_t offset = activationTimeSeries.getNearestRowIndexForTime(chairContactLossTime);
   for(size_t i=0; i<activationTimeSeries.getNumColumns(); ++i){
     SimTK::VectorView activVec = activationTimeSeries.getDependentColumnAtIndex(i);
     const std::vector<double> dActivVec = dVector(activVec);

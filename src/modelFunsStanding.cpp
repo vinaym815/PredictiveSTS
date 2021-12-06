@@ -11,10 +11,12 @@ void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel,
                                                     &osimModel.updComponent("comReporter"));
   OpenSim::TableReporter *muscleActivReporter = dynamic_cast<OpenSim::TableReporter*>(
                                                     &osimModel.updComponent("/muscleActivReporter"));
-  OpenSim::TableReporter_<SimTK::SpatialVec> *feetForceReporter = dynamic_cast<OpenSim::TableReporter_<SimTK::SpatialVec>*>
-                                                    (&osimModel.updComponent("/feetForceReporter"));
-  OpenSim::ForceReporter *frcReporter = dynamic_cast<OpenSim::ForceReporter*>
-                                                    (&osimModel.updAnalysisSet().get("forceReporter"));
+  OpenSim::TableReporter_<SimTK::SpatialVec> *feetForceReporter = dynamic_cast<OpenSim::TableReporter_<SimTK::SpatialVec>*>(
+                                                    &osimModel.updComponent("/feetForceReporter"));
+  OpenSim::ForceReporter *frcReporter = dynamic_cast<OpenSim::ForceReporter*>(
+                                                    &osimModel.updAnalysisSet().get("forceReporter"));
+  OpenSim::TableReporter *coordReporter = dynamic_cast<OpenSim::TableReporter*>(
+                                                    &osimModel.updComponent("/coordReporter"));
 
   osimModel.realizePosition(si0);
   const OpenSim::PhysicalOffsetFrame *heelCnctFrame = dynamic_cast<const OpenSim::PhysicalOffsetFrame*>
@@ -30,6 +32,7 @@ void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel,
   const auto &comTimeSeries = comReporter->getTable();
   const auto &activationTimeSeries = muscleActivReporter->getTable();
   const auto &feetWrenchTimesSeries = feetForceReporter->getTable();
+  const auto &coordTimeSeries = coordReporter->getTable();
 
   //// Can not convert to timeseries as it will break the storage due to constraint being disabled
   const auto &forceStorage = frcReporter->getForceStorage(); 
@@ -43,21 +46,24 @@ void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel,
 
   std::vector<double> wTauBoundaryVec = expWeightVec(tau_Boundary, reporterTimeVec, tF);
   std::vector<double> wTauChairForceVec = expWeightVec(tau_ChairForce, forceTimeVec, tF);
+  std::vector<double> wTauCoordVel = expWeightVec(tau_ChairForce, reporterTimeVec, tF);
 
   const SimTK::Vec3 feetCosts = computeCostFeet(feetWrenchTimesSeries, heelPos, toesPos);
   const SimTK::Vec2 chairCosts= computeCostsChair(wTauChairForceVec, forceStorage);
 
   //// Filling up the cost matrix
   if(tF<simulationDuration-1e-2){
-    costs[0] = -1;
-    costs[1] = 0;
-    costs[2] = computeCostComVel(wTauBoundaryVec, comTimeSeries);
-    costs[3] = 0;
+    //const double bodyWeight = osimModel.getTotalMass(si0)*(osimModel.getGravity()[1]);
+    costs[0] = -1.25;
+    costs[1] = 0.0;
+    costs[2] = computeCostCoordinateVel(wTauCoordVel, coordTimeSeries);
+    //costs[2] = computeCostFeetForce(wTauCoordVel, feetWrenchTimesSeries, bodyWeight);
+    costs[3] = 0.0;
   }
   else{
     costs[0] = computeCostComY(wTauBoundaryVec, comTimeSeries);
     costs[1] = computeCostComX(wTauBoundaryVec, comTimeSeries, feetPos);
-    costs[2] = 0;
+    costs[2] = 0.0;
     costs[3] = chairCosts[0];
   }
   costs[4] = computeCostActivation(activationTimeSeries, seatReleaseTime);
@@ -74,6 +80,7 @@ void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel,
   comReporter->clearTable();
   muscleActivReporter->clearTable();
   feetForceReporter->clearTable();
+  coordReporter->clearTable();
 };
 
 double computeCostComY(const std::vector<double> &weightVec, const OpenSim::TimeSeriesTableVec3 &comTimeSeries){
@@ -103,6 +110,36 @@ double computeCostComX(const std::vector<double> &weightVec, const OpenSim::Time
   return result;
 }
 
+double computeCostCoordinate(const std::vector<double> &weightVec, const OpenSim::TimeSeriesTable coordTimeSeries){
+  double result = 0.0;
+  const int numRelevantCoordinate = coordTimeSeries.getNumColumns()/2;
+  for(size_t iCoord = 0; iCoord<numRelevantCoordinate; ++iCoord){
+    auto coordValueVec = coordTimeSeries.getDependentColumnAtIndex(2*iCoord);
+
+    result += std::inner_product(weightVec.begin(), weightVec.end(), coordValueVec.begin(), 0.0,
+                                std::plus<double>(), [] (const double w, const double value){
+                                    return w*fabs(value);
+                            });
+  }
+  result = SimTK::convertRadiansToDegrees(result)*reportInterval;
+  return result;
+}
+
+double computeCostCoordinateVel(const std::vector<double> &weightVec, const OpenSim::TimeSeriesTable coordTimeSeries){
+  double result = 0.0;
+  const int numRelevantCoordinate = coordTimeSeries.getNumColumns()/2;
+  const std::vector<double> &time = coordTimeSeries.getIndependentColumn();
+  for(size_t iCoord = 0; iCoord<numRelevantCoordinate; ++iCoord){
+    auto coordVelVec = coordTimeSeries.getDependentColumnAtIndex(2*iCoord+1);
+    result += std::inner_product(weightVec.begin(), weightVec.end(), coordVelVec.begin(), 0.0,
+                                std::plus<double>(), [] (const double w, const double value){
+                                    return w*fabs(value);
+                            });
+  }
+  result = SimTK::convertRadiansToDegrees(result)*reportInterval;
+  return result;
+}
+
 double computeCostComVel(const std::vector<double> &weightVec, const OpenSim::TimeSeriesTableVec3 &comTimeSeries){
   const size_t indCom = comTimeSeries.getColumnIndex("/|com_velocity");
   auto comVelVec = comTimeSeries.getDependentColumnAtIndex(indCom);
@@ -111,6 +148,18 @@ double computeCostComVel(const std::vector<double> &weightVec, const OpenSim::Ti
                                             return (w*std::sqrt(comVelT[0]*comVelT[0] + comVelT[1]*comVelT[1]));
                                           });
 
+  result *= reportInterval;
+  return result;
+}
+
+double computeCostFeetForce(const std::vector<double> &weightVec, const OpenSim::TimeSeriesTable_<SimTK::SpatialVec> &feetWrenchTimeSeries, 
+                            const double bodyWeight){
+  const int indfeetWrench = feetWrenchTimeSeries.getColumnIndex("/jointset/ground_calcn_r|reaction_on_parent");
+  auto feetWrenchVec = feetWrenchTimeSeries.getDependentColumnAtIndex(indfeetWrench);
+  double result = 0.0;
+  for(int i=0; i<weightVec.size(); ++i){
+    result += weightVec[i]*fabs(feetWrenchVec[i][1][1] - bodyWeight);
+  }
   result *= reportInterval;
   return result;
 }
