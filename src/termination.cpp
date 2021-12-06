@@ -8,9 +8,17 @@ TerminateSimulation::TerminateSimulation(const OpenSim::Model &osimModel, const 
 
 SimTK::Real TerminateSimulation::getValue(const SimTK::State &s) const {
     const OpenSim::CoordinateSet &coordSet = osimModel.getCoordinateSet();
-    const double jointAngles = SimTK::convertRadiansToDegrees(fabs(coordSet.get("ankle_angle").getValue(s)) + 
-                                                    fabs(coordSet.get("knee_angle").getValue(s)) + 
-                                                    fabs(coordSet.get("hip_flexion").getValue(s))); 
+    const double ankleAngle = coordSet.get("ankle_angle").getValue(s);
+    const double kneeAngle = coordSet.get("knee_angle").getValue(s);
+    const double hipAngle = coordSet.get("hip_flexion").getValue(s);
+
+    const double tibiaAngleGround = ankleAngle;
+    const double femurAngleGround = ankleAngle-kneeAngle;
+    const double torsoAngleGround = ankleAngle-kneeAngle+hipAngle;
+
+    const double jointAngles = SimTK::convertRadiansToDegrees(fabs(tibiaAngleGround) + 
+                                                    fabs(femurAngleGround) + 
+                                                    fabs(torsoAngleGround)); 
 
     return jointAngles - threshold;
 }

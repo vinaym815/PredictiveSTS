@@ -46,8 +46,13 @@ std::vector<double> runSimulation(OpenSim::Model &osimModel, const Parameterizat
   double computeCostCoordinateVel(const std::vector<double> &weightVec, const OpenSim::TimeSeriesTable coordTimeSeries);
 
   // get exponentially increase weight 
-  inline double getExpWeight(const double tConst, const double t, const double tF){
+  inline double getIncExpWeight(const double tConst, const double t, const double tF){
       return std::pow(SimTK::E,t/tConst)/(tConst*(std::pow(SimTK::E, tF/tConst) - 1));
+  };
+
+  // get exponentially decreasing weight 
+  inline double getDecExpWeight(const double tConst, const double t, const double tF){
+      return std::pow(SimTK::E,-t/tConst)/(tConst*(1-std::pow(SimTK::E, -tF/tConst)));
   };
 
   //// get epnential increasing weight vector

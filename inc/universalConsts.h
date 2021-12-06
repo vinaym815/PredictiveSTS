@@ -48,7 +48,7 @@
 // Cost Function Setup
 #ifdef Standing
     const double tau_ChairForce_pct = 1.0/3.0;
-    const double tau_Boundary_pct = 1.0/24.0;
+    const double tau_Boundary_pct = 1.0/6.0;
 #endif
 
 // Simulation Setup

@@ -41,34 +41,47 @@ void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel,
   const std::vector<double> forceTimeVec(forceTimeArray.get(), forceTimeArray.get()+forceTimeArray.getSize());
 
   const std::vector<double> &reporterTimeVec = comReporter->getTable().getIndependentColumn();
-  const double tau_ChairForce = tF*tau_ChairForce_pct;
-  const double tau_Boundary = tF*tau_Boundary_pct;
+  const double tau_ChairForce = simulationDuration*tau_ChairForce_pct;
+  const double tau_Boundary = simulationDuration*tau_Boundary_pct;
 
-  std::vector<double> wTauBoundaryVec = expWeightVec(tau_Boundary, reporterTimeVec, tF);
-  std::vector<double> wTauChairForceVec = expWeightVec(tau_ChairForce, forceTimeVec, tF);
-  std::vector<double> wTauCoordVel = expWeightVec(tau_ChairForce, reporterTimeVec, tF);
+  std::vector<double> wTauBoundaryVec = expWeightVec(tau_Boundary, reporterTimeVec, simulationDuration);
+  std::vector<double> wTauChairForceVec = expWeightVec(tau_ChairForce, forceTimeVec, simulationDuration);
+  std::vector<double> wTauCoordVel = expWeightVec(tau_ChairForce, reporterTimeVec, simulationDuration);
 
   const SimTK::Vec3 feetCosts = computeCostFeet(feetWrenchTimesSeries, heelPos, toesPos);
   const SimTK::Vec2 chairCosts= computeCostsChair(wTauChairForceVec, forceStorage);
+
+  const OpenSim::CoordinateSet &coordSet = osimModel.getCoordinateSet();
+  const double ankleAngle = coordSet.get("ankle_angle").getValue(si0);
+  const double kneeAngle = coordSet.get("knee_angle").getValue(si0);
+  const double hipAngle = coordSet.get("hip_flexion").getValue(si0);
+
+  const double tibiaAngleGround = ankleAngle;
+  const double femurAngleGround = ankleAngle-kneeAngle;
+  const double torsoAngleGround = ankleAngle-kneeAngle+hipAngle;
+  const double C0 = fabs(torsoAngleGround) + fabs(femurAngleGround) + fabs(tibiaAngleGround);
+  const double C1 = computeCostCoordinate(wTauBoundaryVec, coordTimeSeries);
+  const double vin = 1.0/(1+std::pow(SimTK::E, (4-8*C1/C0)));
 
   //// Filling up the cost matrix
   if(tF<simulationDuration-1e-2){
     //const double bodyWeight = osimModel.getTotalMass(si0)*(osimModel.getGravity()[1]);
     costs[0] = -1.25;
-    costs[1] = 0.0;
-    costs[2] = computeCostCoordinateVel(wTauCoordVel, coordTimeSeries);
+    costs[1] = vin*computeCostCoordinateVel(wTauBoundaryVec,coordTimeSeries);
+    costs[2] = 0.0;
     //costs[2] = computeCostFeetForce(wTauCoordVel, feetWrenchTimesSeries, bodyWeight);
-    costs[3] = 0.0;
+    costs[3] = (1.0-vin)*chairCosts[0];
   }
   else{
-    costs[0] = computeCostComY(wTauBoundaryVec, comTimeSeries);
-    costs[1] = computeCostComX(wTauBoundaryVec, comTimeSeries, feetPos);
+    
+    costs[0] = C1;
+    costs[1] = vin*computeCostCoordinateVel(wTauBoundaryVec, coordTimeSeries);
     costs[2] = 0.0;
-    costs[3] = chairCosts[0];
+    costs[3] = (1.0-vin)*chairCosts[0];
   }
-  costs[4] = computeCostActivation(activationTimeSeries, seatReleaseTime);
-  costs[5] = computeCostDiffActivation(activationTimeSeries, seatReleaseTime);
-  costs[6] = computeCostLimitTorque(forceStorage);
+  costs[4] = vin*computeCostActivation(activationTimeSeries, seatReleaseTime);
+  costs[5] = vin*computeCostDiffActivation(activationTimeSeries, seatReleaseTime);
+  costs[6] = vin*computeCostLimitTorque(forceStorage);
   costs[7] = feetCosts[0];
   costs[8] = feetCosts[1];
   costs[9] = feetCosts[2] + chairCosts[1];
@@ -101,7 +114,6 @@ double computeCostComX(const std::vector<double> &weightVec, const OpenSim::Time
   const size_t indCom = comTimeSeries.getColumnIndex("/|com_position");
   auto comTPosVec = comTimeSeries.getDependentColumnAtIndex(indCom);
   const SimTK::Vec3 comT0 = comTPosVec[0];
-
   double result = std::inner_product(weightVec.begin(), weightVec.end(), comTPosVec.begin(), 0.0, std::plus<double>(),
                                           [&comT0, &feetPos](const double &w, const SimTK::Vec3 &comT){
                                             return fabs(feetPos[0] - comT[0]);
@@ -112,14 +124,21 @@ double computeCostComX(const std::vector<double> &weightVec, const OpenSim::Time
 
 double computeCostCoordinate(const std::vector<double> &weightVec, const OpenSim::TimeSeriesTable coordTimeSeries){
   double result = 0.0;
-  const int numRelevantCoordinate = coordTimeSeries.getNumColumns()/2;
-  for(size_t iCoord = 0; iCoord<numRelevantCoordinate; ++iCoord){
-    auto coordValueVec = coordTimeSeries.getDependentColumnAtIndex(2*iCoord);
+  const size_t hipInd = coordTimeSeries.getColumnIndex("/jointset/hip/hip_flexion|value");
+  const size_t kneeInd = coordTimeSeries.getColumnIndex("/jointset/walker_knee/knee_angle|value");
+  const size_t ankleInd = coordTimeSeries.getColumnIndex("/jointset/ankle/ankle_angle|value");
+  const SimTK::MatrixView &coordMat = coordTimeSeries.getMatrix();
 
-    result += std::inner_product(weightVec.begin(), weightVec.end(), coordValueVec.begin(), 0.0,
-                                std::plus<double>(), [] (const double w, const double value){
-                                    return w*fabs(value);
-                            });
+  for(size_t i=0; i<coordMat.nrow(); ++i){
+    const double hipAngle = coordMat.getAnyElt(i, hipInd);
+    const double kneeAngle = coordMat.getAnyElt(i, kneeInd);
+    const double ankleAngle = coordMat.getAnyElt(i, ankleInd);
+
+    const double tibiaAngleVertical = ankleAngle;
+    const double femurAngleVertical = ankleAngle-kneeAngle; 
+    const double torsoAngleVertical = ankleAngle-kneeAngle+hipAngle;
+
+    result += weightVec[i]*(fabs(tibiaAngleVertical) + fabs(femurAngleVertical) + fabs(torsoAngleVertical));
   }
   result = SimTK::convertRadiansToDegrees(result)*reportInterval;
   return result;
@@ -127,14 +146,20 @@ double computeCostCoordinate(const std::vector<double> &weightVec, const OpenSim
 
 double computeCostCoordinateVel(const std::vector<double> &weightVec, const OpenSim::TimeSeriesTable coordTimeSeries){
   double result = 0.0;
-  const int numRelevantCoordinate = coordTimeSeries.getNumColumns()/2;
-  const std::vector<double> &time = coordTimeSeries.getIndependentColumn();
-  for(size_t iCoord = 0; iCoord<numRelevantCoordinate; ++iCoord){
-    auto coordVelVec = coordTimeSeries.getDependentColumnAtIndex(2*iCoord+1);
-    result += std::inner_product(weightVec.begin(), weightVec.end(), coordVelVec.begin(), 0.0,
-                                std::plus<double>(), [] (const double w, const double value){
-                                    return w*fabs(value);
-                            });
+  const size_t hipVelInd = coordTimeSeries.getColumnIndex("/jointset/hip/hip_flexion|speed");
+  const size_t kneeVelInd = coordTimeSeries.getColumnIndex("/jointset/walker_knee/knee_angle|speed");
+  const size_t ankleVelInd = coordTimeSeries.getColumnIndex("/jointset/ankle/ankle_angle|speed");
+  const SimTK::MatrixView &coordMat = coordTimeSeries.getMatrix();
+
+  for(size_t i=0; i<coordMat.nrow(); ++i){
+    const double hipVel = coordMat.getAnyElt(i, hipVelInd);
+    const double kneeVel = coordMat.getAnyElt(i, kneeVelInd);
+    const double ankleVel = coordMat.getAnyElt(i, ankleVelInd);
+
+    const double tibiaWGround = ankleVel;
+    const double femurWGround = ankleVel-kneeVel; 
+    const double torsoWGround = ankleVel-kneeVel+hipVel;
+    result += weightVec[i]*(fabs(tibiaWGround) + fabs(femurWGround) + fabs(torsoWGround));
   }
   result = SimTK::convertRadiansToDegrees(result)*reportInterval;
   return result;
@@ -198,7 +223,7 @@ std::vector<double> expWeightVec(const double tau, const std::vector<double> &ti
   std::vector<double> result(timeVec.size());
   std::transform(timeVec.begin(), timeVec.end(), result.begin(), 
                 [tau, tF](const double &t){
-                  return getExpWeight(tau, t, tF);
+                  return getDecExpWeight(tau, t, tF);
                 });
   return result;
 }
