@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include "cmaes.h"
+#include "OpenSim.h"
 
 #define Standing                            // Commenting will switch to Sitting
 //#define Assisted                            // Commenting will switch to unAssisted
@@ -48,7 +49,7 @@
 // Cost Function Setup
 #ifdef Standing
     const double tau_ChairForce_pct = 1.0/3.0;
-    const double tau_Boundary_pct = 1.0/6.0;
+    const double tau_Boundary_pct = 1.0/24.0;
 #endif
 
 // Simulation Setup
@@ -65,6 +66,7 @@ const int nRestarts = 3;
 const double fTolerance = 0.5;
 const int histSize = 250;
 const int maxIter = 7000;
+const SimTK::Vec3 comTarget{0.02194, 0.943084, -0.0546681};
 
 // Log file Names
 const std::string logBestFileName = "logBest.txt";

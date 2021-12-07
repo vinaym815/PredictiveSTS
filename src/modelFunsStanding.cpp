@@ -46,42 +46,32 @@ void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel,
 
   std::vector<double> wTauBoundaryVec = expWeightVec(tau_Boundary, reporterTimeVec, simulationDuration);
   std::vector<double> wTauChairForceVec = expWeightVec(tau_ChairForce, forceTimeVec, simulationDuration);
-  std::vector<double> wTauCoordVel = expWeightVec(tau_ChairForce, reporterTimeVec, simulationDuration);
+  std::vector<double> wTauChairEqSpacing = expWeightVec(tau_ChairForce, reporterTimeVec, simulationDuration);
 
   const SimTK::Vec3 feetCosts = computeCostFeet(feetWrenchTimesSeries, heelPos, toesPos);
   const SimTK::Vec2 chairCosts= computeCostsChair(wTauChairForceVec, forceStorage);
 
-  const OpenSim::CoordinateSet &coordSet = osimModel.getCoordinateSet();
-  const double ankleAngle = coordSet.get("ankle_angle").getValue(si0);
-  const double kneeAngle = coordSet.get("knee_angle").getValue(si0);
-  const double hipAngle = coordSet.get("hip_flexion").getValue(si0);
+  const double progress = computeComProgess(comTimeSeries);
+  const double vin = 1.0/(1+std::pow(SimTK::E, -(4-8*progress)));
 
-  const double tibiaAngleGround = ankleAngle;
-  const double femurAngleGround = ankleAngle-kneeAngle;
-  const double torsoAngleGround = ankleAngle-kneeAngle+hipAngle;
-  const double C0 = fabs(torsoAngleGround) + fabs(femurAngleGround) + fabs(tibiaAngleGround);
-  const double C1 = computeCostCoordinate(wTauBoundaryVec, coordTimeSeries);
-  const double vin = 1.0/(1+std::pow(SimTK::E, (4-8*C1/C0)));
+  std::cout << "progress " << 1-progress << std::endl;
+  std::cout << "vin " << vin << std::endl;
 
+  const double bodyWeight = osimModel.getTotalMass(si0)*(osimModel.getGravity()[1]);
   //// Filling up the cost matrix
-  if(tF<simulationDuration-1e-2){
-    //const double bodyWeight = osimModel.getTotalMass(si0)*(osimModel.getGravity()[1]);
-    costs[0] = -1.25;
-    costs[1] = vin*computeCostCoordinateVel(wTauBoundaryVec,coordTimeSeries);
-    costs[2] = 0.0;
-    //costs[2] = computeCostFeetForce(wTauCoordVel, feetWrenchTimesSeries, bodyWeight);
-    costs[3] = (1.0-vin)*chairCosts[0];
-  }
-  else{
-    
-    costs[0] = C1;
-    costs[1] = vin*computeCostCoordinateVel(wTauBoundaryVec, coordTimeSeries);
-    costs[2] = 0.0;
-    costs[3] = (1.0-vin)*chairCosts[0];
-  }
-  costs[4] = vin*computeCostActivation(activationTimeSeries, seatReleaseTime);
-  costs[5] = vin*computeCostDiffActivation(activationTimeSeries, seatReleaseTime);
-  costs[6] = vin*computeCostLimitTorque(forceStorage);
+  //if(tF<simulationDuration-1e-2){
+  //  costs[0] = -1.25;
+  //}
+  //else{
+  //}
+
+  costs[0] = computeCostComY(wTauBoundaryVec, comTimeSeries);
+  costs[1] = computeCostComX(wTauBoundaryVec, comTimeSeries, feetPos);
+  costs[2] = vin*computeCostFeetForce(wTauChairEqSpacing, feetWrenchTimesSeries, bodyWeight);
+  costs[3] = (1.0-vin)*chairCosts[0];
+  costs[4] = computeCostActivation(activationTimeSeries, seatReleaseTime);
+  costs[5] = computeCostDiffActivation(activationTimeSeries, seatReleaseTime);
+  costs[6] = computeCostLimitTorque(forceStorage);
   costs[7] = feetCosts[0];
   costs[8] = feetCosts[1];
   costs[9] = feetCosts[2] + chairCosts[1];
@@ -95,6 +85,25 @@ void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel,
   feetForceReporter->clearTable();
   coordReporter->clearTable();
 };
+
+double computeComProgess(const OpenSim::TimeSeriesTableVec3 &comTimeSeries){
+  double result = 10.0;
+  const size_t indCom = comTimeSeries.getColumnIndex("/|com_position");
+  auto comTPosVec = comTimeSeries.getDependentColumnAtIndex(indCom);
+
+  const SimTK::Vec3 &comT0 = comTPosVec[0];
+  const double distance0 = std::sqrt(std::pow(comT0[0]-comTarget[0], 2) + std::pow(comT0[1]-comTarget[1], 2));
+
+  for(int i=0; i<comTPosVec.nrow(); ++i){
+    const SimTK::Vec3 &comT = comTPosVec[i];
+    const double distanceT = std::sqrt(std::pow(comT[0]-comTarget[0],2) + 
+                                      std::pow(comT[1]-comTarget[1],2));
+    if(distanceT<result){
+      result = distanceT;
+    }
+  }
+  return result/distance0;
+}
 
 double computeCostComY(const std::vector<double> &weightVec, const OpenSim::TimeSeriesTableVec3 &comTimeSeries){
   const size_t indCom = comTimeSeries.getColumnIndex("/|com_position");
@@ -120,6 +129,28 @@ double computeCostComX(const std::vector<double> &weightVec, const OpenSim::Time
                                           });
   result *= reportInterval;                
   return result;
+}
+
+double computeBestPosture(const OpenSim::TimeSeriesTable coordTimeSeries){
+  std::vector<double> result(coordTimeSeries.getNumRows());
+  const size_t hipInd = coordTimeSeries.getColumnIndex("/jointset/hip/hip_flexion|value");
+  const size_t kneeInd = coordTimeSeries.getColumnIndex("/jointset/walker_knee/knee_angle|value");
+  const size_t ankleInd = coordTimeSeries.getColumnIndex("/jointset/ankle/ankle_angle|value");
+  const SimTK::MatrixView &coordMat = coordTimeSeries.getMatrix();
+
+  for(size_t i=0; i<coordMat.nrow(); ++i){
+    const double hipAngle = coordMat.getAnyElt(i, hipInd);
+    const double kneeAngle = coordMat.getAnyElt(i, kneeInd);
+    const double ankleAngle = coordMat.getAnyElt(i, ankleInd);
+
+    const double tibiaAngleVertical = ankleAngle;
+    const double femurAngleVertical = ankleAngle-kneeAngle; 
+    const double torsoAngleVertical = ankleAngle-kneeAngle+hipAngle;
+
+    result[i] = fabs(tibiaAngleVertical) + fabs(femurAngleVertical) + fabs(torsoAngleVertical);
+  }
+  const double answer = SimTK::convertRadiansToDegrees(*std::min_element(result.begin(), result.end()));
+  return answer;
 }
 
 double computeCostCoordinate(const std::vector<double> &weightVec, const OpenSim::TimeSeriesTable coordTimeSeries){
@@ -223,7 +254,7 @@ std::vector<double> expWeightVec(const double tau, const std::vector<double> &ti
   std::vector<double> result(timeVec.size());
   std::transform(timeVec.begin(), timeVec.end(), result.begin(), 
                 [tau, tF](const double &t){
-                  return getDecExpWeight(tau, t, tF);
+                  return getIncExpWeight(tau, t, tF);
                 });
   return result;
 }
