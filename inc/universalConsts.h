@@ -53,12 +53,14 @@
 #endif
 
 // Simulation Setup
-const double mu_static = 0.8;               // coefficient of static friction
+const double t0 = 0.0;             // Simulation starting time
 const double simulationDuration = 1.6;
+const SimTK::Vec3 comTarget{0.02194, 0.943084, -0.0546681};
+const double comTerminationThreshold = 1e-2;
+const double mu_static = 0.8;               // coefficient of static friction
 const double samplingDt = 0.01;             // The rate at which excitation signal is sampled(sec) from the parameterization function
 const double reportInterval = 0.001;         // Reporting Interval of table reporters(secs). May be made noisy to avoid peculiarities
 const double integratorAccuracy = 1.0e-4;   // Desired Integration Accuracy
-const double initialTime = 0.0;             // Simulation starting time
 const double defaultExcitationController = 0.05;
 
 // Optimization Setup 
@@ -66,7 +68,6 @@ const int nRestarts = 3;
 const double fTolerance = 0.5;
 const int histSize = 250;
 const int maxIter = 7000;
-const SimTK::Vec3 comTarget{0.02194, 0.943084, -0.0546681};
 
 // Log file Names
 const std::string logBestFileName = "logBest.txt";

@@ -7,27 +7,11 @@ TerminateSimulation::TerminateSimulation(const OpenSim::Model &osimModel, const 
 }
 
 SimTK::Real TerminateSimulation::getValue(const SimTK::State &s) const {
-    const OpenSim::CoordinateSet &coordSet = osimModel.getCoordinateSet();
-    const double ankleAngle = coordSet.get("ankle_angle").getValue(s);
-    const double kneeAngle = coordSet.get("knee_angle").getValue(s);
-    const double hipAngle = coordSet.get("hip_flexion").getValue(s);
-
-    const double tibiaAngleGround = ankleAngle;
-    const double femurAngleGround = ankleAngle-kneeAngle;
-    const double torsoAngleGround = ankleAngle-kneeAngle+hipAngle;
-
-    const double jointAngles = SimTK::convertRadiansToDegrees(fabs(tibiaAngleGround) + 
-                                                    fabs(femurAngleGround) + 
-                                                    fabs(torsoAngleGround)); 
-
-    return jointAngles - threshold;
+    const SimTK::Vec3 comT = osimModel.getMatterSubsystem().calcSystemMassCenterLocationInGround(s);
+    const double disTar = std::sqrt(std::pow(comT[0]-comTarget[0], 2) + std::pow(comT[1]-comTarget[1], 2));
+    return disTar - threshold;
 }
 
 void TerminateSimulation::handleEvent(SimTK::State &s, SimTK::Real accuracy, bool& terminate) const {
     terminate = true;
-    teminationTime = s.getTime();
-}
-
-double TerminateSimulation::getTerminationTime() const{
-    return teminationTime;
 }

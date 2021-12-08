@@ -33,19 +33,12 @@ std::vector<double> runSimulation(OpenSim::Model &osimModel, const Parameterizat
 // The model reference is not const as we need to clear the reporter tables
 #ifdef Standing
 
-  void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel, const SimTK::State siFinal, 
-                            const double seatReleaseTime, const double tF);
-  double computeCostComY(const std::vector<double> &weightVec, const OpenSim::TimeSeriesTableVec3 &comTimeSeries);
-  double computeCostComX(const std::vector<double> &weightVec, const OpenSim::TimeSeriesTableVec3 &comTimeSeries, 
-                          const SimTK::Vec3 feetPos);
-  double computeCostComVel(const std::vector<double> &weightVec, const OpenSim::TimeSeriesTableVec3 &comTimeSeries);
+  void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel, const SimTK::State &si0, const SimTK::State &siF,
+                            const double seatReleaseTime);
   SimTK::Vec2 computeCostsChair(const std::vector<double> &weightVec, const OpenSim::Storage &forceStorage);
   double computeCostFeetForce(const std::vector<double> &weightVec,const OpenSim::TimeSeriesTable_<SimTK::SpatialVec> &feetWrenchTimeSeries, 
                               const double bodyWeight);
-  double computeComProgess(const OpenSim::TimeSeriesTableVec3 &comTimeSeries);
-  double computeBestPosture(const OpenSim::TimeSeriesTable coordTimeSeries);
-  double computeCostCoordinate(const std::vector<double> &weightVec, const OpenSim::TimeSeriesTable coordTimeSeries);
-  double computeCostCoordinateVel(const std::vector<double> &weightVec, const OpenSim::TimeSeriesTable coordTimeSeries);
+  double bestEucledianDisToTarget(const OpenSim::TimeSeriesTableVec3 &comTimeSeries);
 
   // get exponentially increase weight 
   inline double getIncExpWeight(const double tConst, const double t, const double tF){
@@ -90,3 +83,7 @@ inline std::vector<double> dVector(V &vec){
   outVec[0] = 0.0;
   return outVec;
 }
+
+inline double eucledianDis(SimTK::Vec3 v1, SimTK::Vec3 v2){
+  return std::sqrt(std::pow(v1[0]-v2[0], 2) + std::pow(v1[1]-v2[1], 2));
+};

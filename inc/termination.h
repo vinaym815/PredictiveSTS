@@ -7,13 +7,11 @@
 
 class TerminateSimulation: public SimTK::TriggeredEventHandler {
 public:
-  TerminateSimulation(const OpenSim::Model &osimModel, const double threshold=2.5);
+  TerminateSimulation(const OpenSim::Model &osimModel, const double threshold=1e-3);
   SimTK::Real getValue(const SimTK::State &s) const;
   void handleEvent(SimTK::State &s, SimTK::Real accuracy, bool& terminate) const;
-  double getTerminationTime() const;
 
 private:
   const OpenSim::Model &osimModel;
   const double threshold;
-  mutable double teminationTime = simulationDuration;
 };
