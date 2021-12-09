@@ -26,19 +26,11 @@ void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel,
   const auto &activationTimeSeries = muscleActivReporter->getTable();
   const auto &feetWrenchTimesSeries = feetForceReporter->getTable();
 
-  //const double tau_ChairForce = simulationDuration*tau_ChairForce_pct;
   //// Can not convert to timeseries as it will break the storage due to constraint being disabled
   const auto &forceStorage = frcReporter->getForceStorage(); 
-  //OpenSim::Array<double> forceTimeArray;
-  //forceStorage.getTimeColumn(forceTimeArray);
-  //const std::vector<double> forceTimeVec(forceTimeArray.get(), forceTimeArray.get()+forceTimeArray.getSize());
-  //std::vector<double> wTauChairForceVec = expWeightVec(tau_ChairForce, forceTimeVec, simulationDuration);
 
   const SimTK::Vec3 feetCosts = computeCostFeet(feetWrenchTimesSeries, heelPos, toesPos);
-  const SimTK::Vec2 chairCosts= computeCostsChairNew(forceStorage);
-
-  //const std::vector<double> &feetForceTimeVec = feetForceReporter->getTable().getIndependentColumn();
-  //std::vector<double> wTauFeetForceVec = expWeightVec(tau_ChairForce, feetForceTimeVec, simulationDuration);
+  const SimTK::Vec2 chairCosts= computeCostsChair(forceStorage);
 
   const double bodyWeight = osimModel.getTotalMass(si0)*(osimModel.getGravity()[1]);
   const SimTK::Vec3 comT0 = osimModel.calcMassCenterPosition(si0);
@@ -86,7 +78,7 @@ double computeCostFeetForce(const OpenSim::TimeSeriesTable_<SimTK::SpatialVec> &
   }
   return result;
 }
-SimTK::Vec2 computeCostsChairNew(const OpenSim::Storage &forceStorage){
+SimTK::Vec2 computeCostsChair(const OpenSim::Storage &forceStorage){
   OpenSim::Array<double> forceTimeArray;
   forceStorage.getTimeColumn(forceTimeArray);
   const std::vector<double> tVec(forceTimeArray.get(), forceTimeArray.get()+forceTimeArray.getSize());
@@ -113,45 +105,6 @@ SimTK::Vec2 computeCostsChairNew(const OpenSim::Storage &forceStorage){
   double costChairForce = fabs(std::inner_product(chairForceYTVec.begin(), chairForceYTVec.end(), dtVec.begin(), 0.0));
   costChairForce = costChairForce/tVec[tVec.size()-1];
   return SimTK::Vec2{costChairForce, slipPenalty};
-}
-
-SimTK::Vec2 computeCostsChair(const std::vector<double> &weightVec, const OpenSim::Storage &forceStorage){
-  const int indChairForceX = forceStorage.getStateIndex("seatConstraint_ground_Fx");
-  std::vector<double> chairForceXTVec(weightVec.size(), 0.0);
-  double *chairForceXTVecRawPtr = chairForceXTVec.data();
-  forceStorage.getDataColumn(indChairForceX, chairForceXTVecRawPtr);
-
-  const int indChairForceY = forceStorage.getStateIndex("seatConstraint_ground_Fy");
-  std::vector<double> chairForceYTVec(weightVec.size(), 0.0);
-  double *chairForceYTVecRawPtr = chairForceYTVec.data();
-  forceStorage.getDataColumn(indChairForceY, chairForceYTVecRawPtr);
-
-  std::vector<double> tVec(weightVec.size(), 0.0);
-  double *tVecStart = tVec.data();
-  forceStorage.getTimeColumn(tVecStart);
-  const std::vector<double> dtVec = dVector(tVec);
-
-  std::vector<double> frictionPenaltyVec(chairForceXTVec.size(), 0.0);
-  std::transform(chairForceXTVec.begin(), chairForceXTVec.end(), chairForceYTVec.begin(), frictionPenaltyVec.begin(), 
-                  [](const double forceXt, const double forceYt){
-                      return bool(fabs(forceXt) > mu_static*forceYt)*(fabs(forceXt) - mu_static*forceYt);
-                  });
-  const double slipPenalty =  std::inner_product(frictionPenaltyVec.begin(), frictionPenaltyVec.end(), dtVec.begin(), 0.0);
-
-  std::vector<double> chairForceYPenaltyVec(dtVec.size(), 0.0);
-    std::transform( chairForceYTVec.begin(), chairForceYTVec.end(), dtVec.begin(), chairForceYPenaltyVec.begin(), std::multiplies<double>());
-
-  const double costChairForce = fabs(std::inner_product(chairForceYPenaltyVec.begin(), chairForceYPenaltyVec.end(), weightVec.begin(), 0.0));
-  return SimTK::Vec2{costChairForce, slipPenalty};
-}
-
-std::vector<double> expWeightVec(const double tau, const std::vector<double> &timeVec, const double tF){
-  std::vector<double> result(timeVec.size());
-  std::transform(timeVec.begin(), timeVec.end(), result.begin(), 
-                [tau, tF](const double &t){
-                  return getIncExpWeight(tau, t, tF);
-                });
-  return result;
 }
 
 #endif

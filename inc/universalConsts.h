@@ -46,9 +46,6 @@
   #endif
 #endif
 
-#ifdef Standing
-    const double tau_ChairForce_pct = 1.0/3.0;
-#endif
 // Simulation Setup
 const double t0 = 0.0;             // Simulation starting time
 const double simulationDuration = 1.6;

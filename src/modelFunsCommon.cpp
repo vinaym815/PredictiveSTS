@@ -184,16 +184,11 @@ std::vector<double> runSimulation(OpenSim::Model &osimModel, const Parameterizat
         OpenSim::TableReporter_<SimTK::SpatialVec> *feetForceReporter = dynamic_cast<OpenSim::TableReporter_<SimTK::SpatialVec>*>
                                                 (&osimModel.updComponent("/feetForceReporter"));
         OpenSim::STOFileAdapter_<SimTK::SpatialVec>::write(feetForceReporter->getTable(), outputPrefix + "_feetForces.mot");
-
-        const OpenSim::TableReporterVec3 *comReporter = dynamic_cast<const OpenSim::TableReporterVec3*>(
-                                                    &osimModel.getComponent("/comReporter"));
-        OpenSim::STOFileAdapter_<SimTK::Vec3>::write(comReporter->getTable(), outputPrefix+"_com.mot");
       }
         computeCostsStanding(costs, osimModel, si0, siF, seatOffTime);
     #else
         computeCostsSitting(osimModel, si0, costs);
     #endif
-
   }
   catch(const std::string& ex){
     std::cout << ex << std::endl;
