@@ -36,8 +36,9 @@ std::vector<double> runSimulation(OpenSim::Model &osimModel, const Parameterizat
   void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel, const SimTK::State &si0, const SimTK::State &siF,
                             const double seatOffTime);
   SimTK::Vec2 computeCostsChair(const std::vector<double> &weightVec, const OpenSim::Storage &forceStorage);
-  double computeCostFeetForce(const std::vector<double> &weightVec,const OpenSim::TimeSeriesTable_<SimTK::SpatialVec> &feetWrenchTimeSeries, 
-                              const double bodyWeight);
+  SimTK::Vec2 computeCostsChairNew(const OpenSim::Storage &forceStorage);
+  double computeCostFeetForce(const OpenSim::TimeSeriesTable_<SimTK::SpatialVec> &feetWrenchTimeSeries, 
+                              const double bodyWeight, const double seatOffTime, const double tF);
   // get exponentially increase weight 
   inline double getIncExpWeight(const double tConst, const double t, const double tF){
       return std::pow(SimTK::E,t/tConst)/(tConst*(std::pow(SimTK::E, tF/tConst) - 1));
