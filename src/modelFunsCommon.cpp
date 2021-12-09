@@ -34,15 +34,7 @@ void addReporters(OpenSim::Model &osimModel){
   osimModel.addComponent(muscleActivReporter);
 
 
-  #ifdef Standing
-    //// Adding the COM position and velocity reporter
-    OpenSim::TableReporterVec3 *comReporter = new OpenSim::TableReporterVec3();
-    comReporter->set_report_time_interval(reportInterval);
-    comReporter->setName("comReporter");
-    comReporter->addToReport(osimModel.getOutput("com_position"));
-    comReporter->addToReport(osimModel.getOutput("com_velocity"));
-    osimModel.addComponent(comReporter);
-  #else
+  #ifndef Standing
     //// Adding coordiante value and speed reporter
     const OpenSim::CoordinateSet &coordSet = osimModel.getCoordinateSet();
     const std::vector<int> coordinateIndices{coordSet.getIndex("hip_flexion"), 
@@ -158,10 +150,6 @@ std::vector<double> runSimulation(OpenSim::Model &osimModel, const Parameterizat
   if(visualizeResults)
     osimModel.updVisualizer().updSimbodyVisualizer().setShowSimTime(true);
 
-  //// Adding the standing posture termination
-  //TerminateSimulation *comTermination = new TerminateSimulation(osimModel, comTerminationThreshold);
-  //osimModel.updMultibodySystem().addEventHandler(comTermination);
-
   // Adding the seat release constraint
   ReleaseSeatConstraint *releaseSeatConstraint = new ReleaseSeatConstraint(osimModel, SimTK::ConstraintIndex(6), 0.0);
   osimModel.updMultibodySystem().addEventHandler(releaseSeatConstraint); 
@@ -245,13 +233,11 @@ double computeCostLimitTorque(const OpenSim::Storage &forceStorage){
 }
 
 // Computes the cost associated with muscle activation
-double computeCostActivation(const OpenSim::TimeSeriesTable &activationTimeSeries, const double seatOffTime){
+double computeCostActivation(const OpenSim::TimeSeriesTable &activationTimeSeries){
   double result{0};
-  const size_t offset = activationTimeSeries.getNumRows() - activationTimeSeries.getNearestRowIndexForTime(seatOffTime);
-  //const size_t offset = 0;
   for(size_t i=0; i<activationTimeSeries.getNumColumns(); ++i){
     SimTK::VectorView activVec = activationTimeSeries.getDependentColumnAtIndex(i);
-    result += std::inner_product(activVec.begin(), activVec.end() - offset, activVec.begin(), 0.0);
+    result += std::inner_product(activVec.begin(), activVec.end(), activVec.begin(), 0.0);
   }
 
   // Averaging over all muscles
@@ -260,14 +246,12 @@ double computeCostActivation(const OpenSim::TimeSeriesTable &activationTimeSerie
 }
 
 // Computes the cost associated with rate of change of muscle activation
-double computeCostDiffActivation(const OpenSim::TimeSeriesTable &activationTimeSeries, const double seatOffTime){
+double computeCostDiffActivation(const OpenSim::TimeSeriesTable &activationTimeSeries){
   double result{0};
-  const size_t offset = activationTimeSeries.getNearestRowIndexForTime(seatOffTime);
-  //const size_t offset = 0;
   for(size_t i=0; i<activationTimeSeries.getNumColumns(); ++i){
     SimTK::VectorView activVec = activationTimeSeries.getDependentColumnAtIndex(i);
     const std::vector<double> dActivVec = dVector(activVec);
-    result += std::inner_product(dActivVec.begin()+offset, dActivVec.end(), dActivVec.begin()+offset, 0.0);
+    result += std::inner_product(dActivVec.begin(), dActivVec.end(), dActivVec.begin(), 0.0);
   }
 
   // Averaging over all Actuators

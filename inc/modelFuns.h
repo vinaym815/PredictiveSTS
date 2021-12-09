@@ -49,8 +49,8 @@ std::vector<double> runSimulation(OpenSim::Model &osimModel, const Parameterizat
 #endif
 
 //// Computes the individual costs
-double computeCostActivation(const OpenSim::TimeSeriesTable &activationTimeSeries, const double seatOffTime);
-double computeCostDiffActivation(const OpenSim::TimeSeriesTable &activationTimeSeries, const double seatOffTime);
+double computeCostActivation(const OpenSim::TimeSeriesTable &activationTimeSeries);
+double computeCostDiffActivation(const OpenSim::TimeSeriesTable &activationTimeSeries);
 double computeCostLimitTorque(const OpenSim::Storage &forceStorage);
 SimTK::Vec3 computeCostFeet(const OpenSim::TimeSeriesTable_<SimTK::SpatialVec> &feetWrenchTimeSeries, const SimTK::Vec3 heelPos, const SimTK::Vec3 toesPos);
 #ifdef Assisted
