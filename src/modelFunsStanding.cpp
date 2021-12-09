@@ -5,7 +5,7 @@
 Computes the cost for standing simulation
 */
 void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel, const SimTK::State &si0, const SimTK::State &siF, 
-                          const double seatReleaseTime){
+                          const double seatOffTime){
 
   OpenSim::TableReporterVec3 *comReporter = dynamic_cast<OpenSim::TableReporterVec3*>(
                                                     &osimModel.updComponent("comReporter"));
@@ -22,15 +22,14 @@ void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel,
   const OpenSim::PhysicalOffsetFrame *toesCnctFrame = dynamic_cast<const OpenSim::PhysicalOffsetFrame *>
                                                       (&osimModel.getComponent("/bodyset/toes_r/toes_cnctFrame"));
 
-  //const OpenSim::Body &talus = osimModel.getBodySet().get("talus_r");
-  //const SimTK::Vec3 feetPos = talus.getPositionInGround(si0);
   const SimTK::Vec3 heelPos = heelCnctFrame->getPositionInGround(si0);                                                    
   const SimTK::Vec3 toesPos = toesCnctFrame->getPositionInGround(si0);                                                    
 
-  const auto &comTimeSeries = comReporter->getTable();
+  //const auto &comTimeSeries = comReporter->getTable();
   const auto &activationTimeSeries = muscleActivReporter->getTable();
   const auto &feetWrenchTimesSeries = feetForceReporter->getTable();
 
+  const double tau_ChairForce = simulationDuration*tau_ChairForce_pct;
   //// Can not convert to timeseries as it will break the storage due to constraint being disabled
   const auto &forceStorage = frcReporter->getForceStorage(); 
   OpenSim::Array<double> forceTimeArray;
@@ -38,10 +37,6 @@ void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel,
   const std::vector<double> forceTimeVec(forceTimeArray.get(), forceTimeArray.get()+forceTimeArray.getSize());
 
   const std::vector<double> &reporterTimeVec = comReporter->getTable().getIndependentColumn();
-  const double tau_ChairForce = simulationDuration*tau_ChairForce_pct;
-  const double tau_Boundary = simulationDuration*tau_Boundary_pct;
-
-  std::vector<double> wTauBoundaryVec = expWeightVec(tau_Boundary, reporterTimeVec, simulationDuration);
   std::vector<double> wTauChairForceVec = expWeightVec(tau_ChairForce, forceTimeVec, simulationDuration);
   std::vector<double> wTauChairEqSpacing = expWeightVec(tau_ChairForce, reporterTimeVec, simulationDuration);
 
@@ -63,8 +58,8 @@ void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel,
   costs[1] = progress*eucledianDis(comVelTf, SimTK::Vec3 {0.0});
   costs[2] = progress*computeCostFeetForce(wTauChairEqSpacing, feetWrenchTimesSeries, bodyWeight);
   costs[3] = (1.0-progress)*chairCosts[0];
-  costs[4] = computeCostActivation(activationTimeSeries, seatReleaseTime);
-  costs[5] = computeCostDiffActivation(activationTimeSeries, seatReleaseTime);
+  costs[4] = computeCostActivation(activationTimeSeries, seatOffTime);
+  costs[5] = computeCostDiffActivation(activationTimeSeries, seatOffTime);
   costs[6] = computeCostLimitTorque(forceStorage);
   costs[7] = feetCosts[0];
   costs[8] = feetCosts[1];
@@ -78,21 +73,6 @@ void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel,
   muscleActivReporter->clearTable();
   feetForceReporter->clearTable();
 };
-
-double bestEucledianDisToTarget(const OpenSim::TimeSeriesTableVec3 &comTimeSeries){
-  const size_t indCom = comTimeSeries.getColumnIndex("/|com_position");
-  auto comTPosVec = comTimeSeries.getDependentColumnAtIndex(indCom);
-
-  std::vector<double> disVec(comTPosVec.nrow());
-  std::transform(comTPosVec.begin(), comTPosVec.end(), disVec.begin(),[](const SimTK::Vec3 &comT){
-    return eucledianDis(comT, comTarget);
-  });
-
-  double result = *std::min_element(disVec.begin(),disVec.end());
-
-  //// Returning Normalized Best Distance
-  return result/disVec[0];
-}
 
 double computeCostFeetForce(const std::vector<double> &weightVec, const OpenSim::TimeSeriesTable_<SimTK::SpatialVec> &feetWrenchTimeSeries, 
                             const double bodyWeight){
@@ -130,7 +110,7 @@ SimTK::Vec2 computeCostsChair(const std::vector<double> &weightVec, const OpenSi
   const double slipPenalty =  std::inner_product(frictionPenaltyVec.begin(), frictionPenaltyVec.end(), dtVec.begin(), 0.0);
 
   std::vector<double> chairForceYPenaltyVec(dtVec.size(), 0.0);
-  std::transform( chairForceYTVec.begin(), chairForceYTVec.end(), dtVec.begin(), chairForceYPenaltyVec.begin(), std::multiplies<double>());
+    std::transform( chairForceYTVec.begin(), chairForceYTVec.end(), dtVec.begin(), chairForceYPenaltyVec.begin(), std::multiplies<double>());
 
   const double costChairForce = fabs(std::inner_product(chairForceYPenaltyVec.begin(), chairForceYPenaltyVec.end(), weightVec.begin(), 0.0));
   return SimTK::Vec2{costChairForce, slipPenalty};

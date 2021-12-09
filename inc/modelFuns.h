@@ -34,23 +34,14 @@ std::vector<double> runSimulation(OpenSim::Model &osimModel, const Parameterizat
 #ifdef Standing
 
   void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel, const SimTK::State &si0, const SimTK::State &siF,
-                            const double seatReleaseTime);
+                            const double seatOffTime);
   SimTK::Vec2 computeCostsChair(const std::vector<double> &weightVec, const OpenSim::Storage &forceStorage);
   double computeCostFeetForce(const std::vector<double> &weightVec,const OpenSim::TimeSeriesTable_<SimTK::SpatialVec> &feetWrenchTimeSeries, 
                               const double bodyWeight);
-  double bestEucledianDisToTarget(const OpenSim::TimeSeriesTableVec3 &comTimeSeries);
-
   // get exponentially increase weight 
   inline double getIncExpWeight(const double tConst, const double t, const double tF){
       return std::pow(SimTK::E,t/tConst)/(tConst*(std::pow(SimTK::E, tF/tConst) - 1));
   };
-
-  // get exponentially decreasing weight 
-  inline double getDecExpWeight(const double tConst, const double t, const double tF){
-      return std::pow(SimTK::E,-t/tConst)/(tConst*(1-std::pow(SimTK::E, -tF/tConst)));
-  };
-
-  //// get epnential increasing weight vector
   std::vector<double> expWeightVec(const double tau, const std::vector<double> &timeVec, const double tF);
 #else
   void computeCostsSitting(OpenSim::Model &osimModel, const SimTK::State si0, std::vector<double> &costs);
@@ -58,8 +49,8 @@ std::vector<double> runSimulation(OpenSim::Model &osimModel, const Parameterizat
 #endif
 
 //// Computes the individual costs
-double computeCostActivation(const OpenSim::TimeSeriesTable &activationTimeSeries, const double chairContactLossTime);
-double computeCostDiffActivation(const OpenSim::TimeSeriesTable &activationTimeSeries, const double chairContactLossTime);
+double computeCostActivation(const OpenSim::TimeSeriesTable &activationTimeSeries, const double seatOffTime);
+double computeCostDiffActivation(const OpenSim::TimeSeriesTable &activationTimeSeries, const double seatOffTime);
 double computeCostLimitTorque(const OpenSim::Storage &forceStorage);
 SimTK::Vec3 computeCostFeet(const OpenSim::TimeSeriesTable_<SimTK::SpatialVec> &feetWrenchTimeSeries, const SimTK::Vec3 heelPos, const SimTK::Vec3 toesPos);
 #ifdef Assisted

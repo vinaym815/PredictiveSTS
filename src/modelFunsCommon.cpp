@@ -159,8 +159,8 @@ std::vector<double> runSimulation(OpenSim::Model &osimModel, const Parameterizat
     osimModel.updVisualizer().updSimbodyVisualizer().setShowSimTime(true);
 
   //// Adding the standing posture termination
-  TerminateSimulation *comTermination = new TerminateSimulation(osimModel, comTerminationThreshold);
-  osimModel.updMultibodySystem().addEventHandler(comTermination);
+  //TerminateSimulation *comTermination = new TerminateSimulation(osimModel, comTerminationThreshold);
+  //osimModel.updMultibodySystem().addEventHandler(comTermination);
 
   // Adding the seat release constraint
   ReleaseSeatConstraint *releaseSeatConstraint = new ReleaseSeatConstraint(osimModel, SimTK::ConstraintIndex(6), 0.0);
@@ -186,7 +186,7 @@ std::vector<double> runSimulation(OpenSim::Model &osimModel, const Parameterizat
     manager.initialize(si);
 
     const SimTK::State &siF = manager.integrate(simulationDuration);
-    const double seatReleaseTime = releaseSeatConstraint->getSeatRleaseTime();
+    const double seatOffTime = releaseSeatConstraint->getSeatRleaseTime();
 
     // The computingCosts function clears the reporter memories. Therefore, exports needs to be done before the cost is computed
     #ifdef Standing
@@ -201,7 +201,7 @@ std::vector<double> runSimulation(OpenSim::Model &osimModel, const Parameterizat
                                                     &osimModel.getComponent("/comReporter"));
         OpenSim::STOFileAdapter_<SimTK::Vec3>::write(comReporter->getTable(), outputPrefix+"_com.mot");
       }
-        computeCostsStanding(costs, osimModel, si0, siF, seatReleaseTime);
+        computeCostsStanding(costs, osimModel, si0, siF, seatOffTime);
     #else
         computeCostsSitting(osimModel, si0, costs);
     #endif
@@ -245,9 +245,9 @@ double computeCostLimitTorque(const OpenSim::Storage &forceStorage){
 }
 
 // Computes the cost associated with muscle activation
-double computeCostActivation(const OpenSim::TimeSeriesTable &activationTimeSeries, const double chairContactLossTime){
+double computeCostActivation(const OpenSim::TimeSeriesTable &activationTimeSeries, const double seatOffTime){
   double result{0};
-  const size_t offset = activationTimeSeries.getNumRows() - activationTimeSeries.getNearestRowIndexForTime(chairContactLossTime);
+  const size_t offset = activationTimeSeries.getNumRows() - activationTimeSeries.getNearestRowIndexForTime(seatOffTime);
   //const size_t offset = 0;
   for(size_t i=0; i<activationTimeSeries.getNumColumns(); ++i){
     SimTK::VectorView activVec = activationTimeSeries.getDependentColumnAtIndex(i);
@@ -260,9 +260,9 @@ double computeCostActivation(const OpenSim::TimeSeriesTable &activationTimeSerie
 }
 
 // Computes the cost associated with rate of change of muscle activation
-double computeCostDiffActivation(const OpenSim::TimeSeriesTable &activationTimeSeries, const double chairContactLossTime){
+double computeCostDiffActivation(const OpenSim::TimeSeriesTable &activationTimeSeries, const double seatOffTime){
   double result{0};
-  const size_t offset = activationTimeSeries.getNearestRowIndexForTime(chairContactLossTime);
+  const size_t offset = activationTimeSeries.getNearestRowIndexForTime(seatOffTime);
   //const size_t offset = 0;
   for(size_t i=0; i<activationTimeSeries.getNumColumns(); ++i){
     SimTK::VectorView activVec = activationTimeSeries.getDependentColumnAtIndex(i);
