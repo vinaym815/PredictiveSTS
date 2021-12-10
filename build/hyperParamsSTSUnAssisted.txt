@@ -8,4 +8,4 @@
 # upper bounds Ai
 1.0
 # Cost Weights: comY, comX, comVel, chairForce, a, da, limitForce, ZMP, unilaterality, slip, assistance 
-400, 100, 0.8, 0.8, 100, 20, 10, 20, 1.0, 1.0
+400, 1, 1, 0.6, 100, 20, 10, 20, 1.0, 1.0

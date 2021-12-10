@@ -34,6 +34,7 @@ std::vector<double> runSimulation(OpenSim::Model &osimModel, const Parameterizat
 
   void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel, const SimTK::State &si0, const SimTK::State &siF,
                             const double seatOffTime);
+  double computeCostJointVel(const OpenSim::Model &osimModel, const SimTK::State &siF);
   SimTK::Vec2 computeCostsChair(const OpenSim::Storage &forceStorage);
   double computeCostFeetForce(const OpenSim::TimeSeriesTable_<SimTK::SpatialVec> &feetWrenchTimeSeries, 
                               const double bodyWeight, const double seatOffTime, const double tF);
