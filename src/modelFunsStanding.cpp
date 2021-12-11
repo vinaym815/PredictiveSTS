@@ -65,14 +65,14 @@ double computeCostFeetForce(const OpenSim::TimeSeriesTable_<SimTK::SpatialVec> &
   if(seatOffTime<tF-1e-2){
     const int indfeetWrench = feetWrenchTimeSeries.getColumnIndex("/jointset/ground_calcn_r|reaction_on_parent");
     auto feetWrenchVec = feetWrenchTimeSeries.getDependentColumnAtIndex(indfeetWrench);
-    //const size_t seatOffInd = feetWrenchTimeSeries.getNearestRowIndexForTime(seatOffTime);
+    const size_t seatOffInd = feetWrenchTimeSeries.getNearestRowIndexForTime(seatOffTime);
 
-    //result += std::accumulate(feetWrenchVec.begin()+seatOffInd, feetWrenchVec.end(), 0.0,
-    //                                    [bodyWeight](const double &lhs, const SimTK::SpatialVec &feetWrenchT){
-    //                                      return lhs+fabs(feetWrenchT[1][1] - bodyWeight);
-    //                                    });
-    //result = result*reportInterval/(tF-seatOffTime);
-    result = fabs(feetWrenchVec[feetWrenchVec.size()-1][1][1] - bodyWeight);
+    result += std::accumulate(feetWrenchVec.begin()+seatOffInd, feetWrenchVec.end(), 0.0,
+                                        [bodyWeight](const double &lhs, const SimTK::SpatialVec &feetWrenchT){
+                                          return lhs+fabs(feetWrenchT[1][1] - bodyWeight);
+                                        });
+    result = result*reportInterval/(tF-seatOffTime);
+    //result = fabs(feetWrenchVec[feetWrenchVec.size()-1][1][1] - bodyWeight);
   }
   return result;
 }
@@ -84,7 +84,7 @@ SimTK::Vec2 computeCostsChair(const OpenSim::Storage &forceStorage){
   const std::vector<double> tVec(forceTimeArray.get(), forceTimeArray.get()+forceTimeArray.getSize());
   const std::vector<double> dtVec = dVector(tVec);
 
-  //// Force applied by ground to keep the constraint
+  //// Force applied to ground by the constraint
   const int indChairForceX = forceStorage.getStateIndex("seatConstraint_ground_Fx");
   std::vector<double> chairForceXTVec(tVec.size(), 0.0);
   double *chairForceXTVecRawPtr = chairForceXTVec.data();
@@ -98,7 +98,7 @@ SimTK::Vec2 computeCostsChair(const OpenSim::Storage &forceStorage){
   std::vector<double> slipVec(chairForceXTVec.size(), 0.0);
   std::transform(chairForceXTVec.begin(), chairForceXTVec.end(), chairForceYTVec.begin(), slipVec.begin(), 
                   [](const double forceXt, const double forceYt){
-                      return std::max(0.0, fabs(forceXt) - mu_static*forceYt);
+                      return std::max(0.0, fabs(forceXt) + mu_static*forceYt);
                   });
   const double slipPenalty =  *std::max_element(slipVec.begin(), slipVec.end());
 
