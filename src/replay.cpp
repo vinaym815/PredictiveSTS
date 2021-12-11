@@ -21,7 +21,8 @@ int main(int argc, char *argv[]){
   // Checking the number of inputs;
   if (argc!=7){
       std::cout << "Inappropriate Number of Arguments" << std::endl;
-      std::cout << "Correct Format:\n>>funcName #ExcitationSegments fileName startGeneration endGeneration visualize(true/false) saveData(true/false)" << std::endl;
+      std::cout << "Correct Format:\n funcName #ExcitationSegments fileName startGen endGen visualize(true/false) saveData(true/false)" 
+                << std::endl;
       exit(1);
   }
 
@@ -49,7 +50,7 @@ int main(int argc, char *argv[]){
   }
 
   #ifdef Standing
-    const std::vector<double> costWeights{400, 1, 1.0, 0.6, 100, 20, 10, 20, 1.0, 1.0, 0.2};
+    const std::vector<double> costWeights{400, 0.5, 1.0, 0.6, 100, 20, 10, 200, 1.0, 1.0, 0.2};
   #else
     const std::vector<double> costWeights{5, 4, 200, 40, 10, 20, 1.0, 1.0, 1.0};
   #endif
@@ -85,7 +86,9 @@ int main(int argc, char *argv[]){
         if(visualizeResults){
           locker.lock();
             std::cout << int(inVec[0]) << " : " << totalCost << std::endl;
-            std::for_each(relativeCosts.begin(), relativeCosts.end(), [](const double cost){std::cout << cost << std::endl;});
+            for(int i=0; i<relativeCosts.size(); ++i){
+              std::cout << relativeCosts[i] << " : " << costs[i] << std::endl;
+            }
             std::cout <<std::endl;
           locker.unlock();
         }

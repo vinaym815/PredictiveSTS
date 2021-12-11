@@ -6,6 +6,7 @@
 
 #define Standing                            // Commenting will switch to Sitting
 //#define Assisted                            // Commenting will switch to unAssisted
+//#define Debug
 
 // Sets up model and number of variables
 #ifdef Assisted
