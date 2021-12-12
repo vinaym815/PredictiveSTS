@@ -36,8 +36,6 @@ std::vector<double> runSimulation(OpenSim::Model &osimModel, const Parameterizat
                             const double seatOffTime);
   double computeCostJointVel(const OpenSim::Model &osimModel, const SimTK::State &siF);
   SimTK::Vec2 computeCostsChair(const OpenSim::Storage &forceStorage);
-  double computeCostFeetForce(const OpenSim::TimeSeriesTable_<SimTK::SpatialVec> &feetWrenchTimeSeries, 
-                              const double bodyWeight, const double seatOffTime, const double tF);
 #else
   void computeCostsSitting(OpenSim::Model &osimModel, const SimTK::State si0, std::vector<double> &costs);
   SimTK::Vec2 computeCostsCoordinate(const OpenSim::TimeSeriesTable &coordTimeSeries);
@@ -47,7 +45,9 @@ std::vector<double> runSimulation(OpenSim::Model &osimModel, const Parameterizat
 double computeCostActivation(const OpenSim::TimeSeriesTable &activationTimeSeries);
 double computeCostDiffActivation(const OpenSim::TimeSeriesTable &activationTimeSeries);
 double computeCostLimitTorque(const OpenSim::Storage &forceStorage);
-SimTK::Vec3 computeCostFeet(const OpenSim::TimeSeriesTable_<SimTK::SpatialVec> &feetWrenchTimeSeries, const SimTK::Vec3 heelPos, const SimTK::Vec3 toesPos);
+SimTK::Vec4 computeCostFeet(OpenSim::Model &model, const SimTK::State &si0, const double seatOffTime);
+//SimTK::Vec4 computeCostFeet(const OpenSim::TimeSeriesTable_<SimTK::SpatialVec> &feetWrenchTimeSeries, const SimTK::Vec3 heelPos, 
+//                            const SimTK::Vec3 toesPos, const double seatOffTime, const double bodyWeight);
 #ifdef Assisted
   double computeCostAssistance(const OpenSim::Storage &forceStorage);
 #endif

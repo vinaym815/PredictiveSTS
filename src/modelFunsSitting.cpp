@@ -29,7 +29,7 @@ void computeCostsSitting(OpenSim::Model &osimModel, const SimTK::State si0, std:
   const auto &forceStorage = frcReporter->getForceStorage();
 
   const SimTK::Vec2 costsCoordinate = computeCostsCoordinate(coordTimeSeries);
-  const SimTK::Vec3 feetCosts = computeCostFeet(feetWrenchTimesSeries, heelPos, toesPos);
+  const SimTK::Vec4 feetCosts = computeCostFeet(osimModel, si0, seatOffTime);
 
   // Filling up the cost matrix
   costs[0] = costsCoordinate[0];
@@ -48,7 +48,6 @@ void computeCostsSitting(OpenSim::Model &osimModel, const SimTK::State si0, std:
   // Clearing all the reporters
   muscleActivReporter->clearTable();
   coordReporter->clearTable();
-  feetForceReporter->clearTable();
 };
 
 SimTK::Vec2 computeCostsCoordinate(const OpenSim::TimeSeriesTable &coordTimeSeries){
