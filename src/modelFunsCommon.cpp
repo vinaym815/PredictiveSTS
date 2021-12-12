@@ -258,44 +258,43 @@ double computeCostDiffActivation(const OpenSim::TimeSeriesTable &activationTimeS
 SimTK::Vec3 computeCostFeet(const OpenSim::TimeSeriesTable_<SimTK::SpatialVec> &feetWrenchTimeSeries, 
                             const SimTK::Vec3 heelPos, const SimTK::Vec3 toesPos){
 
+  using namespace Eigen;
+
   //// Forces applied by the feet on the ground
   const int indfeetWrench = feetWrenchTimeSeries.getColumnIndex("/jointset/ground_calcn_r|reaction_on_parent");
   auto feetWrenchVec = feetWrenchTimeSeries.getDependentColumnAtIndex(indfeetWrench);
 
-  std::vector<double> unilateralityVec(feetWrenchVec.nrow(), 0.0);
-  std::vector<double> slipVec(feetWrenchVec.nrow(), 0.0);
-  std::vector<double> zmpVec(feetWrenchVec.nrow(), 0.0);
+  Map<const Matrix<double,Dynamic,Dynamic,RowMajor>> feetWrenchMat(feetWrenchVec.getContiguousScalarData(), 
+                                                                    feetWrenchVec.nrow(), 6);
+  auto torqueZ = feetWrenchMat(Eigen::all,2);
+  auto forceX = feetWrenchMat(Eigen::all,3);
+  auto forceY = feetWrenchMat(Eigen::all,4);
+  Eigen::MatrixXd torqueForceMat = feetWrenchMat(Eigen::all, {2,4});
+
+  auto slip = forceX.cwiseAbs() + mu_static*forceY;
+  auto zmp = torqueZ.array()/forceY.array();
 
   Eigen::Matrix2d A;
   A << heelPos[0], toesPos[0], 1, 1;
   const Eigen::Matrix2d Ainv = A.inverse();
-  Eigen::Vector2d b;
+  auto heelToeForce = torqueForceMat*Ainv.transpose();
 
-  for(int i=0; i<feetWrenchVec.nrow(); ++i){
-    const SimTK::SpatialVec &feetWrenchT = feetWrenchVec[i];
-    const double torqueZt = feetWrenchT[0][2];
-    const double forceXt = feetWrenchT[1][0];
-    const double forceYt = feetWrenchT[1][1];
-    const double zmp = torqueZt/forceYt;
-
-    b << torqueZt, forceYt;  
-    const Eigen::Vector2d heelToeForces = Ainv*b;
-
-    zmpVec[i] = fabs(zmp - (heelPos[0]+toesPos[0])/2);
-    unilateralityVec[i] = std::max({0.0, heelToeForces[0], heelToeForces[1]});
-    slipVec[i] = std::max(0.0 , fabs(forceXt) + mu_static*forceYt);
-  }
-
-  const double costZMP = *std::max_element(zmpVec.begin(), zmpVec.end());
-  const double costUnilaterality = *std::max_element(unilateralityVec.begin(), unilateralityVec.end());
-  const double costSlip = *std::max_element(slipVec.begin(), slipVec.end());
+  double costZMP = std::max(fabs(zmp.maxCoeff()-(heelPos[0]+toesPos[0])/2), 
+                            fabs(zmp.minCoeff()-(heelPos[0]+toesPos[0])/2));
+  double costUnilaterality = std::max(0.0, heelToeForce.maxCoeff());
+  double costSlip = std::max(0.0, slip.maxCoeff());
 
   #ifdef Debug
     const std::vector<double> &timeVec = feetWrenchTimeSeries.getIndependentColumn();
-    writeVector(timeVec, "feetForceTime.csv");
-    writeVector(zmpVec, "zmpVec.csv");
-    writeVector(unilateralityVec, "unilateralityVec.csv");
-    writeVector(slipVec, "slipVec.csv");
+    VectorXd heelForce = heelToeForce(Eigen::all,0);
+    VectorXd toeForce = heelToeForce(Eigen::all,1);
+
+    const std::vector<double> heelForceVec(heelForce.data(), heelForce.data()+heelForce.rows()*heelForce.cols());
+    const std::vector<double> toeForceVec(toeForce.data(), toeForce.data()+toeForce.rows()*toeForce.cols());
+
+    writeVector(timeVec, "feetForceTime.csv", std::ios_base::out);
+    writeVector(heelForceVec, "heelForceVec.csv");
+    writeVector(toeForceVec, "toeForceVec.csv");
   #endif
 
   return SimTK::Vec3(costZMP, costUnilaterality, costSlip);
