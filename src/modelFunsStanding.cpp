@@ -53,7 +53,7 @@ SimTK::Vec2 computeCostsChair(const OpenSim::Storage &forceStorage){
   const std::vector<double> tVec(forceTimeArray.get(), forceTimeArray.get()+forceTimeArray.getSize());
   const std::vector<double> dtVec = dVector(tVec);
 
-  //// Force applied to ground by the constraint
+  //// Force applied by the ground to keep the constraint
   const int indChairForceX = forceStorage.getStateIndex("seatConstraint_ground_Fx");
   std::vector<double> chairForceXTVec(tVec.size(), 0.0);
   double *chairForceXTVecRawPtr = chairForceXTVec.data();
@@ -67,7 +67,7 @@ SimTK::Vec2 computeCostsChair(const OpenSim::Storage &forceStorage){
   std::vector<double> slipVec(chairForceXTVec.size(), 0.0);
   std::transform(chairForceXTVec.begin(), chairForceXTVec.end(), chairForceYTVec.begin(), slipVec.begin(), 
                   [](const double forceXt, const double forceYt){
-                      return std::max(0.0, fabs(forceXt) + mu_static*forceYt);
+                      return std::max(0.0, fabs(forceXt) - mu_static*forceYt);
                   });
   const double slipPenalty =  *std::max_element(slipVec.begin(), slipVec.end());
 
