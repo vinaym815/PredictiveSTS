@@ -8,38 +8,28 @@ void computeCostsSitting(OpenSim::Model &osimModel, const SimTK::State si0, std:
                                                     &osimModel.updComponent("/coordReporter"));
   OpenSim::TableReporter *muscleActivReporter = dynamic_cast<OpenSim::TableReporter*>(
                                                     &osimModel.updComponent("/muscleActivReporter"));
-  OpenSim::TableReporter_<SimTK::SpatialVec> *feetForceReporter = dynamic_cast<OpenSim::TableReporter_<SimTK::SpatialVec>*>
-                                                    (&osimModel.updComponent("/feetForceReporter"));
   OpenSim::ForceReporter *frcReporter = dynamic_cast<OpenSim::ForceReporter*>
                                                     (&osimModel.updAnalysisSet().get("forceReporter"));
 
-  osimModel.realizePosition(si0);
-  const OpenSim::PhysicalOffsetFrame *heelCnctFrame = dynamic_cast<const OpenSim::PhysicalOffsetFrame*>
-                                                      (&osimModel.updComponent("/bodyset/calcn_r/heel_cnctFrame"));
-  const OpenSim::PhysicalOffsetFrame *toesCnctFrame = dynamic_cast<const OpenSim::PhysicalOffsetFrame *>
-                                                      (&osimModel.getComponent("/bodyset/toes_r/toes_cnctFrame"));
-
-  const SimTK::Vec3 heelPos = heelCnctFrame->getPositionInGround(si0);                                                    
-  const SimTK::Vec3 toesPos = toesCnctFrame->getPositionInGround(si0);                                                    
 
   const auto &activationTimeSeries = muscleActivReporter->getTable();
   const auto &coordTimeSeries = coordReporter->getTable();
-  const auto &feetWrenchTimesSeries = feetForceReporter->getTable();
-
   const auto &forceStorage = frcReporter->getForceStorage();
 
   const SimTK::Vec2 costsCoordinate = computeCostsCoordinate(coordTimeSeries);
+  const double seatOffTime = simulationDuration;
   const SimTK::Vec4 feetCosts = computeCostFeet(osimModel, si0, seatOffTime);
+  const SimTK::Vec2 chairCosts= computeCostsChair(forceStorage);
 
   // Filling up the cost matrix
   costs[0] = costsCoordinate[0];
   costs[1] = costsCoordinate[1];
-  costs[2] = computeCostActivation(activationTimeSeries, simulationDuration);
-  costs[3] = computeCostDiffActivation(activationTimeSeries, simulationDuration);
+  costs[2] = computeCostActivation(activationTimeSeries);
+  costs[3] = computeCostDiffActivation(activationTimeSeries);
   costs[4] = computeCostLimitTorque(forceStorage);
   costs[5] = feetCosts[0];
   costs[6] = feetCosts[1];
-  costs[7] = feetCosts[2];
+  costs[7] = feetCosts[2]+chairCosts[1];
 
   #ifdef Assisted
     costs[8] = computeCostAssistance(forceStorage);

@@ -1,6 +1,6 @@
 # Some constants are present in universalConsts.h
 # number of node points 
-17
+16
 # stdDev Ai
 0.1
 # lower bounds Ai
@@ -8,4 +8,4 @@
 # upper bounds Ai
 1.0
 # Cost Function Weights: theta, thetadot, muscleEffort, limitForce, zmp, unlaterality, slip
-5, 4, 200, 40, 10, 20, 1.0, 1.0
+5, 4, 200, 40, 10, 20, 0.0, 1.0

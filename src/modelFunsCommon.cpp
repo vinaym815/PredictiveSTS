@@ -177,14 +177,14 @@ std::vector<double> runSimulation(OpenSim::Model &osimModel, const Parameterizat
     const double seatOffTime = releaseSeatConstraint->getSeatRleaseTime();
 
     // The computingCosts function clears the reporter memories. Therefore, exports needs to be done before the cost is computed
+    if(saveResults){
+      OpenSim::STOFileAdapter_<double>::write(manager.getStatesTable(), outputPrefix+".sto");
+      frcReporter->getForceStorage().print(outputPrefix + "_force.mot");
+      OpenSim::TableReporter_<SimTK::SpatialVec> *feetForceReporter = dynamic_cast<OpenSim::TableReporter_<SimTK::SpatialVec>*>
+                                              (&osimModel.updComponent("/feetForceReporter"));
+      OpenSim::STOFileAdapter_<SimTK::SpatialVec>::write(feetForceReporter->getTable(), outputPrefix + "_feetForces.mot");
+    }
     #ifdef Standing
-      if(saveResults){
-        OpenSim::STOFileAdapter_<double>::write(manager.getStatesTable(), outputPrefix+".sto");
-        frcReporter->getForceStorage().print(outputPrefix + "_force.mot");
-        OpenSim::TableReporter_<SimTK::SpatialVec> *feetForceReporter = dynamic_cast<OpenSim::TableReporter_<SimTK::SpatialVec>*>
-                                                (&osimModel.updComponent("/feetForceReporter"));
-        OpenSim::STOFileAdapter_<SimTK::SpatialVec>::write(feetForceReporter->getTable(), outputPrefix + "_feetForces.mot");
-      }
         computeCostsStanding(costs, osimModel, si0, siF, seatOffTime);
     #else
         computeCostsSitting(osimModel, si0, costs);
@@ -319,6 +319,40 @@ SimTK::Vec4 computeCostFeet(OpenSim::Model &model, const SimTK::State &si0, cons
   feetForceReporter->clearTable();
 
   return SimTK::Vec4(costZMP, costUnilaterality, costSlip, costAcc);
+}
+
+//// Can not convert to timeseries as it will break the storage due to constraint being disabled
+SimTK::Vec2 computeCostsChair(const OpenSim::Storage &forceStorage){
+  OpenSim::Array<double> forceTimeArray;
+  forceStorage.getTimeColumn(forceTimeArray);
+  const std::vector<double> tVec(forceTimeArray.get(), forceTimeArray.get()+forceTimeArray.getSize());
+  const std::vector<double> dtVec = dVector(tVec);
+
+  //// Force applied by the ground to keep the constraint
+  const int indChairForceX = forceStorage.getStateIndex("seatConstraint_ground_Fx");
+  std::vector<double> chairForceXTVec(tVec.size(), 0.0);
+  double *chairForceXTVecRawPtr = chairForceXTVec.data();
+  forceStorage.getDataColumn(indChairForceX, chairForceXTVecRawPtr);
+
+  const int indChairForceY = forceStorage.getStateIndex("seatConstraint_ground_Fy");
+  std::vector<double> chairForceYTVec(tVec.size(), 0.0);
+  double *chairForceYTVecRawPtr = chairForceYTVec.data();
+  forceStorage.getDataColumn(indChairForceY, chairForceYTVecRawPtr);
+
+  std::vector<double> slipVec(chairForceXTVec.size(), 0.0);
+  std::transform(chairForceXTVec.begin(), chairForceXTVec.end(), chairForceYTVec.begin(), slipVec.begin(), 
+                  [](const double forceXt, const double forceYt){
+                      return std::max(0.0, fabs(forceXt) - mu_static*forceYt);
+                  });
+  const double slipPenalty =  *std::max_element(slipVec.begin(), slipVec.end());
+
+  double costChairForce = fabs(std::inner_product(chairForceYTVec.begin(), chairForceYTVec.end(), dtVec.begin(), 0.0,
+                                                  std::plus<double>(), [](const double chairForce, const double dt){
+                                                    return fabs(chairForce)*dt;
+                                                  }));
+  costChairForce = costChairForce/tVec[tVec.size()-1];
+
+  return SimTK::Vec2{costChairForce, slipPenalty};
 }
 
 #ifdef Assisted

@@ -1,48 +1,25 @@
 #include "parameterization.h"
 
-// Piecewise Linear Function with variable dt
-PWLinearVariableDt::PWLinearVariableDt(const SimTK::Vector params){
-
-    // Checking the size of input variable
-    if(!(params.size()%2 == 0) ){
-        std::cout << "Please check the size of PieceWise Linear parameters vector." << std::endl;
-        exit(1);
-    }
-
-    int numPoints = params.size()/2; 
-
-    SimTK::Vector aTimes(numPoints);
-    SimTK::Vector aValues(numPoints);
-    double time = 0;
-    for(int i=0; i<numPoints; ++i){
-        aTimes[i] = time;
-        aValues[i] = params[numPoints+i];
-        time += params[i];
-    }
-
-    pieceWiseLinearFunc.reset(new OpenSim::PiecewiseLinearFunction(numPoints, aTimes.getContiguousScalarData(), aValues.getContiguousScalarData(), ""));
-}
-
-double PWLinearVariableDt::getValue(const double t) const {
-    SimTK::Vector time(1);
-    time[0] = t;
-    return pieceWiseLinearFunc->calcValue(time);
-}
-
 // Piecewise Linear Function with fixed dt
+/*
+Can not parameterize from 0.0s as it enables model to achieve non compressive seat force without
+triggering seat release
+*/
 PWLinearFixedDt::PWLinearFixedDt(SimTK::Vector params){
 
     int numPoints = params.size();
-    const double dT = simulationDuration/(numPoints-1);
-    SimTK::Vector aTimes(numPoints);
-    SimTK::Vector aValues(numPoints);
+    const double dT = simulationDuration/(numPoints);
+    SimTK::Vector aTimes(numPoints+1);
+    SimTK::Vector aValues(numPoints+1);
 
-    for(int i=0; i<numPoints; ++i){
+    for(int i=0; i<numPoints+1; ++i){
         aTimes[i] = i*dT;
-        aValues[i] = params[i];
+        if (i==0){
+            aValues[i] = defaultExcitationController;
+        }
+        aValues[i] = params[i-1];
     }
-
-    pieceWiseLinearFunc.reset(new OpenSim::PiecewiseLinearFunction(numPoints, aTimes.getContiguousScalarData(), aValues.getContiguousScalarData(), ""));
+    pieceWiseLinearFunc.reset(new OpenSim::PiecewiseLinearFunction(numPoints+1, aTimes.getContiguousScalarData(), aValues.getContiguousScalarData(), ""));
 }
 
 double PWLinearFixedDt::getValue(const double t) const {

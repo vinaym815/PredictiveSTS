@@ -17,22 +17,6 @@ class CustomFunction{
 };
 
 /*
-Piecewise Linear Parameterization with variable Dt
-Format: dt1, dt2,...dtn, P1, P2, P3...,Pn
-Bug: Last dt i.e dtn is not being used
-   : Not modified as it would indexing modification of initStepSize, upperBound and Lower Bound
-*/
-class PWLinearVariableDt : public CustomFunction{
-    public:
-        constexpr static int nVarsPerComp = 2;
-        PWLinearVariableDt(const SimTK::Vector params);
-        ~PWLinearVariableDt(){};
-        double getValue(const double t) const override;
-    private:
-        std::unique_ptr<OpenSim::PiecewiseLinearFunction> pieceWiseLinearFunc;
-};
-
-/*
 Piecewise Linear Parameterization with fixed Dt
 Format: P0, P1, P2, P3 ............Pn
 */
@@ -51,8 +35,6 @@ class PWLinearFixedDt : public CustomFunction{
 Types of Parameterization
 */
 enum class ParameterizationType {
-    GMM,
-    PWLinearVariableDt,
     PWLinearFixedDt
 };
 
@@ -60,7 +42,6 @@ enum class ParameterizationType {
 Number of paramerts required by each component of a parameterization
 */
 static std::map<ParameterizationType, int> mapNumVarsPerComp{
-    {ParameterizationType::PWLinearVariableDt, PWLinearVariableDt::nVarsPerComp},
     {ParameterizationType::PWLinearFixedDt, PWLinearFixedDt::nVarsPerComp}
 };
 
@@ -74,6 +55,5 @@ std::unique_ptr<CustomFunction> createExtFuncPtr(const SimTK::Vector params){
 Map to functions that creates parameterization
 */
 static std::map<ParameterizationType, std::function<std::unique_ptr<CustomFunction>(const SimTK::Vector)>> mapExtFuncPtr{
-    {ParameterizationType::PWLinearVariableDt, createExtFuncPtr<PWLinearVariableDt>},
     {ParameterizationType::PWLinearFixedDt, createExtFuncPtr<PWLinearFixedDt>}
 };
