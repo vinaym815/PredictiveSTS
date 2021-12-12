@@ -71,7 +71,10 @@ SimTK::Vec2 computeCostsChair(const OpenSim::Storage &forceStorage){
                   });
   const double slipPenalty =  *std::max_element(slipVec.begin(), slipVec.end());
 
-  double costChairForce = fabs(std::inner_product(chairForceYTVec.begin(), chairForceYTVec.end(), dtVec.begin(), 0.0));
+  double costChairForce = fabs(std::inner_product(chairForceYTVec.begin(), chairForceYTVec.end(), dtVec.begin(), 0.0,
+                                                  std::plus<double>(), [](const double chairForce, const double dt){
+                                                    return fabs(chairForce)*dt;
+                                                  }));
   costChairForce = costChairForce/tVec[tVec.size()-1];
 
   return SimTK::Vec2{costChairForce, slipPenalty};
