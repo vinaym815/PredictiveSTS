@@ -322,29 +322,17 @@ SimTK::Vec4 computeCostFeet(OpenSim::Model &model, const SimTK::State &si0, cons
 }
 
 //// Can not convert to timeseries as it will break the storage due to constraint being disabled
-SimTK::Vec2 computeCostsChair(const OpenSim::Storage &forceStorage){
+double computeCostChair(const OpenSim::Storage &forceStorage){
   OpenSim::Array<double> forceTimeArray;
   forceStorage.getTimeColumn(forceTimeArray);
   const std::vector<double> tVec(forceTimeArray.get(), forceTimeArray.get()+forceTimeArray.getSize());
   const std::vector<double> dtVec = dVector(tVec);
 
   //// Force applied by the ground to keep the constraint
-  const int indChairForceX = forceStorage.getStateIndex("seatConstraint_ground_Fx");
-  std::vector<double> chairForceXTVec(tVec.size(), 0.0);
-  double *chairForceXTVecRawPtr = chairForceXTVec.data();
-  forceStorage.getDataColumn(indChairForceX, chairForceXTVecRawPtr);
-
   const int indChairForceY = forceStorage.getStateIndex("seatConstraint_ground_Fy");
   std::vector<double> chairForceYTVec(tVec.size(), 0.0);
   double *chairForceYTVecRawPtr = chairForceYTVec.data();
   forceStorage.getDataColumn(indChairForceY, chairForceYTVecRawPtr);
-
-  std::vector<double> slipVec(chairForceXTVec.size(), 0.0);
-  std::transform(chairForceXTVec.begin(), chairForceXTVec.end(), chairForceYTVec.begin(), slipVec.begin(), 
-                  [](const double forceXt, const double forceYt){
-                      return std::max(0.0, fabs(forceXt) - mu_static*forceYt);
-                  });
-  const double slipPenalty =  *std::max_element(slipVec.begin(), slipVec.end());
 
   std::vector<double> weightVec = expWeightVec(tau_ChairForce, tVec, simulationDuration);
   std::transform(weightVec.begin(), weightVec.end(), dtVec.begin(), weightVec.begin(), std::multiplies<double>());
@@ -353,7 +341,7 @@ SimTK::Vec2 computeCostsChair(const OpenSim::Storage &forceStorage){
                                                     return w*fabs(chairForce);
                                                   }));
 
-  return SimTK::Vec2{costChairForce, slipPenalty};
+  return costChairForce;
 }
 
 #ifdef Assisted

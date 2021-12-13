@@ -16,7 +16,6 @@ void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel,
   const auto &forceStorage = frcReporter->getForceStorage();
 
   const SimTK::Vec4 feetCosts = computeCostFeet(osimModel, si0, seatOffTime);
-  const SimTK::Vec2 chairCosts= computeCostsChair(forceStorage);
 
   const SimTK::Vec3 comT0 = osimModel.calcMassCenterPosition(si0);
   const SimTK::Vec3 comTf = osimModel.calcMassCenterPosition(siF);
@@ -26,18 +25,17 @@ void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel,
 
   const double progress = 1.0-std::min(d0,df)/d0;
   std::cout << "progress " << progress << std::endl;
-  std::cout << "slip Cost " << feetCosts[2] << ", " << chairCosts[1] << std::endl << std::endl; 
 
   costs[0] = df/d0;
   costs[1] = progress*computeCostJointVel(osimModel, siF);
   costs[2] = progress*feetCosts[3];
-  costs[3] = (1.0-progress)*chairCosts[0];
+  costs[3] = (1.0-progress)*computeCostChair(forceStorage);
   costs[4] = computeCostActivation(activationTimeSeries);
   costs[5] = computeCostDiffActivation(activationTimeSeries);
   costs[6] = computeCostLimitTorque(forceStorage);
   costs[7] = progress*feetCosts[0];
   costs[8] = progress*feetCosts[1];
-  costs[9] = progress*(feetCosts[2] + chairCosts[1]);
+  costs[9] = progress*feetCosts[2];
   #ifdef Assisted
     costs[10] = computeCostAssistance(forceStorage);
   #endif

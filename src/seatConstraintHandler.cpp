@@ -37,10 +37,14 @@ SimTK::Real ReleaseSeatConstraint::getValue(const SimTK::State& s) const{
 	for(int i=0; i<ncm; ++i){
         values[6*ncb+i] = mobilityForces[i];
     }
+	const double forceOnSeatFromGroundX = values[0];
 	const double forceOnSeatFromGroundY = values[1];
+	const double signal = std::min(forceOnSeatFromGroundY, mu_static*forceOnSeatFromGroundY)-fabs(forceOnSeatFromGroundX);
 
-	//std::cout << s.getTime() << " : " << forceOnSeatFromGroundY - _forceThreshold <<  std::endl;
-	return forceOnSeatFromGroundY - _forceThreshold;
+	//std::cout << s.getTime() << " : " << forceOnSeatFromGroundY - _forceThreshold <<  
+	//							", "<< mu_static*forceOnSeatFromGroundY-fabs(forceOnSeatFromGroundX) 
+	//								<< std::endl;
+	return signal - _forceThreshold;
 }
 
 	// EVENT HANDLER FUNCTION
