@@ -301,7 +301,9 @@ SimTK::Vec4 computeCostFeet(OpenSim::Model &model, const SimTK::State &si0, cons
   const double maxForce = *maxForceInd;
   const auto offset = std::distance(forceY.begin(), maxForceInd); 
   const double minForce = *std::max_element(forceY.begin()+offset, forceY.end());
-  const double costAcc = fabs(maxForce-bodyWeight) + fabs(minForce-bodyWeight);
+  const double costAcc = fabs(maxForce-bodyWeight) + fabs(minForce-bodyWeight) + fabs(forceY[forceY.size()-1]-bodyWeight);
+
+  //std::cout << fabs(maxForce-bodyWeight) << ", " << fabs(minForce-bodyWeight)<< ", " << fabs(forceY[forceY.size()-1]-bodyWeight) << std::endl;
 
   #ifdef Debug
     const std::vector<double> &timeVec = feetWrenchTimeSeries.getIndependentColumn();
