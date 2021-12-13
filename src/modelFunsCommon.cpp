@@ -346,11 +346,12 @@ SimTK::Vec2 computeCostsChair(const OpenSim::Storage &forceStorage){
                   });
   const double slipPenalty =  *std::max_element(slipVec.begin(), slipVec.end());
 
-  double costChairForce = fabs(std::inner_product(chairForceYTVec.begin(), chairForceYTVec.end(), dtVec.begin(), 0.0,
-                                                  std::plus<double>(), [](const double chairForce, const double dt){
-                                                    return fabs(chairForce)*dt;
+  std::vector<double> weightVec = expWeightVec(tau_ChairForce, tVec, simulationDuration);
+  std::transform(weightVec.begin(), weightVec.end(), dtVec.begin(), weightVec.begin(), std::multiplies<double>());
+  const double costChairForce = fabs(std::inner_product(chairForceYTVec.begin(), chairForceYTVec.end(), weightVec.begin(), 0.0,
+                                                  std::plus<double>(), [](const double chairForce, const double w){
+                                                    return w*fabs(chairForce);
                                                   }));
-  costChairForce = costChairForce/tVec[tVec.size()-1];
 
   return SimTK::Vec2{costChairForce, slipPenalty};
 }
@@ -504,3 +505,12 @@ void writeVector(const std::vector<double> x, const std::string fileName, std::i
   logFile << "\n";
   logFile.close();
 };
+
+std::vector<double> expWeightVec(const double tau, const std::vector<double> &timeVec, const double tF){
+  std::vector<double> result(timeVec.size());
+  std::transform(timeVec.begin(), timeVec.end(), result.begin(), 
+                [tau, tF](const double &t){
+                  return getExpWeight(tau, t, tF);
+                });
+  return result;
+}

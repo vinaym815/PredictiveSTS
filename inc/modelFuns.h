@@ -47,6 +47,7 @@ double computeCostLimitTorque(const OpenSim::Storage &forceStorage);
 
 SimTK::Vec2 computeCostsChair(const OpenSim::Storage &forceStorage);
 SimTK::Vec4 computeCostFeet(OpenSim::Model &model, const SimTK::State &si0, const double seatOffTime);
+std::vector<double> expWeightVec(const double tau, const std::vector<double> &timeVec, const double tF);
 #ifdef Assisted
   double computeCostAssistance(const OpenSim::Storage &forceStorage);
 #endif
@@ -71,4 +72,9 @@ inline std::vector<double> dVector(V &vec){
 
 inline double eucledianDis(SimTK::Vec3 v1, SimTK::Vec3 v2){
   return std::sqrt(std::pow(v1[0]-v2[0], 2) + std::pow(v1[1]-v2[1], 2));
+};
+
+// get exponentially increase weight 
+inline double getExpWeight(const double tConst, const double t, const double tF){
+    return std::pow(SimTK::E,t/tConst)/(tConst*(std::pow(SimTK::E, tF/tConst) - 1));
 };

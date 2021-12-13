@@ -25,8 +25,8 @@ void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel,
   const double df = eucledianDis(comTf, comTarget);
 
   const double progress = 1.0-std::min(d0,df)/d0;
-  //std::cout << "progress " << progress << std::endl;
-  //std::cout << "slip Cost " << feetCosts[2] << ", " << chairCosts[1] << std::endl << std::endl; 
+  std::cout << "progress " << progress << std::endl;
+  std::cout << "slip Cost " << feetCosts[2] << ", " << chairCosts[1] << std::endl << std::endl; 
 
   costs[0] = df/d0;
   costs[1] = progress*computeCostJointVel(osimModel, siF);
