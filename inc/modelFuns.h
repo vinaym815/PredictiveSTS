@@ -25,13 +25,11 @@ void addController(OpenSim::Model &osimModel, const double tUB);
 
 // Used to run a forward simulation
 void setExcitations(OpenSim::Model &osimModel, SimTK::State &si0, const ParameterizationType parameterization,const int numComps, const double *compValues);
-std::vector<double> runSimulation(OpenSim::Model &osimModel, const ParameterizationType &parameterization, const double *controls, const int numComps,
-                                  const bool visualizeResults=false, const bool saveResults=false,
-                                  const std::string="export");
+std::vector<double> runSimulation(OpenSim::Model &osimModel, const ParameterizationType &parameterization, const int numDecisionVars,const double *controls,
+                                  const int numComps, const bool visualizeResults=false, const bool saveResults=false, const std::string="export");
 
 // The model reference is not const as we need to clear the reporter tables
 #ifdef Standing
-
   void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel, const SimTK::State &si0, const SimTK::State &siF,
                             const double seatOffTime);
   double computeCostJointVel(const OpenSim::Model &osimModel, const SimTK::State &siF);

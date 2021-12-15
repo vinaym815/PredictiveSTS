@@ -55,7 +55,7 @@ int main(int argc, const char *argv[])
         // Number of variables 
         const int numComps = int(hyperParamsVec[0]);
         const int numVarsPerComp = mapNumVarsPerComp[parameterization];
-        const int numDecisionVars = numVarsPerComp*numComps*numExtFuncs;
+        const int numDecisionVars = numVarsPerComp*numComps*numExtFuncs+1;
 
         // The initial guess (mean) is overwritten if an resume solution is provided
         std::vector<double> initGuess(numDecisionVars);
@@ -67,15 +67,18 @@ int main(int argc, const char *argv[])
 
         //// Standard deviations and bounds for the CMAES algorithm
         std::vector<double> initStepSize(numDecisionVars), upperBound(numDecisionVars), lowerBound(numDecisionVars);
-        for(int i=0; i<numExtFuncs; ++i){
-            for(int j=0; j<numComps; ++j){
-                for(int k=0; k<numVarsPerComp; ++k){
-                    initStepSize[(numVarsPerComp*i+k)*numComps+j] = hyperParamsVec[1+k];
-                    lowerBound[(numVarsPerComp*i+k)*numComps+j] = hyperParamsVec[1+numVarsPerComp+k];
-                    upperBound[(numVarsPerComp*i+k)*numComps+j] = hyperParamsVec[1+2*numVarsPerComp+k];
-                }
-            }
-        }
+        readVector(initStepSize,"stdDev.txt");
+        readVector(lowerBound,"lowerBound.txt");
+        readVector(upperBound,"upperBound.txt");
+        //for(int i=0; i<numExtFuncs; ++i){
+        //    for(int j=0; j<numComps; ++j){
+        //        for(int k=0; k<numVarsPerComp; ++k){
+        //            initStepSize[(numVarsPerComp*i+k)*numComps+j] = hyperParamsVec[1+k];
+        //            lowerBound[(numVarsPerComp*i+k)*numComps+j] = hyperParamsVec[1+numVarsPerComp+k];
+        //            upperBound[(numVarsPerComp*i+k)*numComps+j] = hyperParamsVec[1+2*numVarsPerComp+k];
+        //        }
+        //    }
+        //}
 
         // Weights used by the cost function
         int offset = numHyperParams-numWeights;
@@ -100,7 +103,7 @@ int main(int argc, const char *argv[])
             locker.unlock();
 
             // Running the forward simulation
-            const std::vector<double> costs = runSimulation(osimModel, parameterization, newControls, numComps);
+            const std::vector<double> costs = runSimulation(osimModel, parameterization, numDecisionVars, newControls, numComps);
 
             // Computing the weighted cost
             const double value = std::inner_product(costWeights.begin(), costWeights.end(), costs.begin(), 0.0);
@@ -148,7 +151,7 @@ int main(int argc, const char *argv[])
         // Saving the results from best simulation
         Eigen::VectorXd optimParams = cmaparams.get_gp().pheno(cmasols.get_best_seen_candidate().get_x_dvec());
         OpenSim::Model osimModel(newModelName);
-        std::vector<double> finalCosts = runSimulation(osimModel, parameterization, optimParams.data(), numComps, true, true, "optimResults");
+        std::vector<double> finalCosts = runSimulation(osimModel, parameterization, numDecisionVars, optimParams.data(), numComps, true, true, "optimResults");
         const double totalCost = std::inner_product(finalCosts.begin(), finalCosts.end(), costWeights.begin(), 0.0); 
         std::cout << "Optimized Cost : " << totalCost << std::endl;
 

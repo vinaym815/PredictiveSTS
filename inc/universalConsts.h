@@ -50,7 +50,7 @@
 // Simulation Setup
 const double t0 = 0.0;             // Simulation starting time
 const double simulationDuration = 1.6;
-const SimTK::Vec3 comTarget{0.02194, 0.943084, -0.0546681};
+const SimTK::Vec3 comTarget{0.0421594, 0.945351, -0.0546681};
 const double comTerminationThreshold = 1e-2;
 const double mu_static = 0.8;               // coefficient of static friction
 const double samplingDt = 0.01;             // The rate at which excitation signal is sampled(sec) from the parameterization function
@@ -59,9 +59,9 @@ const double integratorAccuracy = 1.0e-4;   // Desired Integration Accuracy
 const double defaultExcitationController = 0.05;
 
 // Optimization Setup 
-const double tau_ChairForce = simulationDuration/8.0;
+const double tau_ChairForce = 2.0*simulationDuration/3.0;
 const int nRestarts = 3;
-const double fTolerance = 0.5;
+const double fTolerance = 0.1;
 const int histSize = 250;
 const int maxIter = 7000;
 

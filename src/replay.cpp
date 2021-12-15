@@ -50,14 +50,14 @@ int main(int argc, char *argv[]){
   }
 
   #ifdef Standing
-    const std::vector<double> costWeights{400, 0.5, 0.2, 0.4, 100, 20, 10, 20, 0.0, 0.1, 0.2};
+    const std::vector<double> costWeights{600, 0.2, 0.2, 0.4, 100, 40, 10, 40, 0.0, 0.1, 0.2};
   #else
     const std::vector<double> costWeights{5, 4, 200, 40, 10, 20, 0.0, 1.0, 1.0};
   #endif
 
   OpenSim::ModelVisualizer::addDirToGeometrySearchPaths("../geometry");
   addComponentsToModel(modelName, newModelNameReplay, simulationDuration);
-  const int numTotalVars = numVarsPerComp*numComps*numExtFuncs;
+  const int numTotalVars = numVarsPerComp*numComps*numExtFuncs+1;
 
   std::vector<int> gens(genEnd-genStart+1);
   std::iota(gens.begin(), gens.end(), 0);
@@ -77,7 +77,8 @@ int main(int argc, char *argv[]){
         locker.unlock();
 
         const std::string fileNamePrefix = std::to_string(int(inVec[0]));
-        const std::vector<double> costs = runSimulation(osimModel, parameterization, inVec.data()+2, numComps, visualizeResults, saveResults, fileNamePrefix);
+        const std::vector<double> costs = runSimulation(osimModel, parameterization, numTotalVars, inVec.data()+2, 
+                                                        numComps, visualizeResults, saveResults, fileNamePrefix);
 
         std::vector<double> relativeCosts(costs.size());
         std::transform(costs.begin(), costs.end(), costWeights.begin(), relativeCosts.begin(),std::multiplies<double>());

@@ -24,12 +24,12 @@ void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel,
   const double df = eucledianDis(comTf, comTarget);
 
   const double progress = 1.0-std::min(d0,df)/d0;
-  std::cout << "progress " << progress << std::endl;
+  //std::cout << "progress " << progress << std::endl;
 
   costs[0] = df/d0;
   costs[1] = progress*computeCostJointVel(osimModel, siF);
   costs[2] = progress*feetCosts[3];
-  costs[3] = (1.0-progress)*computeCostChair(forceStorage);
+  costs[3] = computeCostChair(forceStorage);
   costs[4] = computeCostActivation(activationTimeSeries);
   costs[5] = computeCostDiffActivation(activationTimeSeries);
   costs[6] = computeCostLimitTorque(forceStorage);

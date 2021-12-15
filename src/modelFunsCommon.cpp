@@ -122,6 +122,7 @@ void setExcitations(OpenSim::Model &osimModel, SimTK::State &si0, const Paramete
 
 // Runs a forward simulation and returns the computed costs
 std::vector<double> runSimulation(OpenSim::Model &osimModel, const ParameterizationType &parameterization, 
+                                                              const int numDecisionVars,
                                                               const double *controls, const int numComps,
                                                               const bool visualizeResults,
                                                               const bool saveResults,
@@ -173,8 +174,12 @@ std::vector<double> runSimulation(OpenSim::Model &osimModel, const Parameterizat
     manager.setIntegratorAccuracy(integratorAccuracy);
     manager.initialize(si);
 
-    const SimTK::State &siF = manager.integrate(simulationDuration);
-    const double seatOffTime = releaseSeatConstraint->getSeatRleaseTime();
+    const double simT = controls[numDecisionVars-1];
+    const SimTK::State &siF = manager.integrate(simT);
+    double seatOffTime = releaseSeatConstraint->getSeatRleaseTime();
+    if (seatOffTime<0){
+      seatOffTime = siF.getTime();
+    }
 
     // The computingCosts function clears the reporter memories. Therefore, exports needs to be done before the cost is computed
     if(saveResults){
@@ -296,12 +301,16 @@ SimTK::Vec4 computeCostFeet(OpenSim::Model &model, const SimTK::State &si0, cons
   auto heelToeForce = torqueForceMat*Ainv.transpose();
   double costUnilaterality = std::max(0.0, heelToeForce.maxCoeff());
 
-  const size_t seatOffInd = feetWrenchTimeSeries.getNearestRowIndexForTime(seatOffTime);
-  auto maxForceInd = std::min_element(forceY.begin()+seatOffInd, forceY.end());
-  const double maxForce = *maxForceInd;
-  const auto offset = std::distance(forceY.begin(), maxForceInd); 
-  const double minForce = *std::max_element(forceY.begin()+offset, forceY.end());
-  const double costAcc = fabs(maxForce-bodyWeight) + fabs(minForce-bodyWeight) + fabs(forceY[forceY.size()-1]-bodyWeight);
+  const double tF = feetWrenchTimeSeries.getIndependentColumn().back();
+  double costAcc = 0.0;
+  if(seatOffTime<tF){
+    const size_t seatOffInd = feetWrenchTimeSeries.getNearestRowIndexForTime(seatOffTime);
+    auto maxForceInd = std::min_element(forceY.begin()+seatOffInd, forceY.end());
+    const double maxForce = *maxForceInd;
+    const auto offset = std::distance(forceY.begin(), maxForceInd); 
+    const double minForce = *std::max_element(forceY.begin()+offset, forceY.end());
+    costAcc += fabs(maxForce-bodyWeight) + fabs(minForce-bodyWeight) + fabs(forceY[forceY.size()-1]-bodyWeight);
+  }
 
   //std::cout << fabs(maxForce-bodyWeight) << ", " << fabs(minForce-bodyWeight)<< ", " << fabs(forceY[forceY.size()-1]-bodyWeight) << std::endl;
 
@@ -336,7 +345,7 @@ double computeCostChair(const OpenSim::Storage &forceStorage){
   double *chairForceYTVecRawPtr = chairForceYTVec.data();
   forceStorage.getDataColumn(indChairForceY, chairForceYTVecRawPtr);
 
-  std::vector<double> weightVec = expWeightVec(tau_ChairForce, tVec, simulationDuration);
+  std::vector<double> weightVec = expWeightVec(tau_ChairForce, tVec, tVec.back());
   std::transform(weightVec.begin(), weightVec.end(), dtVec.begin(), weightVec.begin(), std::multiplies<double>());
   const double costChairForce = fabs(std::inner_product(chairForceYTVec.begin(), chairForceYTVec.end(), weightVec.begin(), 0.0,
                                                   std::plus<double>(), [](const double chairForce, const double w){

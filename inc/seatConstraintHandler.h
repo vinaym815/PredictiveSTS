@@ -16,5 +16,5 @@ private:
   OpenSim::Model &_model;
   const double _forceThreshold;
   const SimTK::ConstraintIndex _index;
-  mutable double seatReleaseTime = simulationDuration;
+  mutable double seatReleaseTime = -1;
 };
