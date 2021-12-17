@@ -24,9 +24,12 @@
   #endif
 
 #else
-  const std::string modelName = "vin_00pct.osim";
-  const std::string newModelName = "vin_00pct.osim.mod";
-  const std::string newModelNameReplay = "vin_00pct_replay.osim.mod";
+  const std::string modelName = "vin_00Npct.osim";
+  const std::string newModelName = "vin_00Npct.osim.mod";
+  const std::string newModelNameReplay = "vin_00Npct_replay.osim.mod";
+  //const std::string modelName = "vin_00pct.osim";
+  //const std::string newModelName = "vin_00pct.osim.mod";
+  //const std::string newModelNameReplay = "vin_00pct_replay.osim.mod";
   //const std::string modelName = "vin_20pct.osim";
   //const std::string newModelName = "vin_20pct.osim.mod";
   //const std::string newModelNameReplay = "vin_20pct_replay.osim.mod";
