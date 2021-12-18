@@ -8,4 +8,4 @@
 # upper bounds Ai
 1.0
 # Cost Weights: progress, vTf, feet-mg, chairForce, a, da, limitForce, ZMP, unilaterality, slip 
-600, 0.2, 0.2, 0.4, 100, 40, 10, 2500, 0.0, 0.1
+600, 0.2, 0.2, 0.4, 150, 60, 10, 2500, 0.0, 0.1

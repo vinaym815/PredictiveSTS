@@ -8,4 +8,4 @@
 # upper bounds Ai
 1.0
 # Cost Function Weights: theta, thetadot, muscleEffort, limitForce, zmp, unlaterality, slip
-5, 4, 200, 40, 10, 20, 0.0, 1.0
+5, 4, 200, 80, 10, 2500, 0.1, 1.0
