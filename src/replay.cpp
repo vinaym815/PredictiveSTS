@@ -56,7 +56,7 @@ int main(int argc, char *argv[]){
   #endif
 
   OpenSim::ModelVisualizer::addDirToGeometrySearchPaths("../geometry");
-  addComponentsToModel(modelName, newModelNameReplay, simulationDuration);
+  addComponentsToModel(modelName, newModelNameReplay);
   const int numTotalVars = numVarsPerComp*numComps*numExtFuncs+1;
 
   std::vector<int> gens(genEnd-genStart+1);

@@ -18,7 +18,7 @@ void computeCostsSitting(OpenSim::Model &osimModel, const SimTK::State si0, std:
 
   const SimTK::Vec2 costsCoordinate = computeCostsCoordinate(coordTimeSeries);
   const double seatOffTime = activationTimeSeries.getIndependentColumn().back();
-  const SimTK::Vec4 feetCosts = computeCostFeet(osimModel, si0, seatOffTime);
+  const SimTK::Vec3 feetCosts = computeCostFeet(osimModel, si0, seatOffTime);
 
   // Filling up the cost matrix
   costs[0] = costsCoordinate[0];
@@ -28,10 +28,9 @@ void computeCostsSitting(OpenSim::Model &osimModel, const SimTK::State si0, std:
   costs[4] = computeCostLimitTorque(forceStorage);
   costs[5] = feetCosts[0];
   costs[6] = feetCosts[1];
-  costs[7] = feetCosts[2];
 
   #ifdef Assisted
-    costs[8] = computeCostAssistance(forceStorage);
+    costs[7] = computeCostAssistance(forceStorage);
   #endif
 
   // Clearing all the reporters

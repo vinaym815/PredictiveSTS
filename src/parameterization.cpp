@@ -8,14 +8,14 @@ triggering seat release
 PWLinearFixedDt::PWLinearFixedDt(SimTK::Vector params){
 
     int numPoints = params.size();
-    const double dT = simulationDuration/(numPoints);
+    const double dT = T_MAX/(numPoints);
     SimTK::Vector aTimes(numPoints+1);
     SimTK::Vector aValues(numPoints+1);
 
     for(int i=0; i<numPoints+1; ++i){
         aTimes[i] = i*dT;
         if (i==0){
-            aValues[i] = defaultExcitationController;
+            aValues[i] = DEFAULT_EXCITATION;
         }
         aValues[i] = params[i-1];
     }

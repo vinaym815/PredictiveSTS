@@ -1,25 +1,49 @@
 #include "modelFuns.h"
 
 // Adds a prescribed controller with piecewise linear functions to the model and saves a copy of it 
-void addComponentsToModel(const std::string modelName, const std::string newModelName, const double tUB){
+void addComponentsToModel(const std::string modelName, const std::string newModelName){
     OpenSim::Model osimModel(modelName);
-    addController(osimModel, tUB);
+    addController(osimModel);
     osimModel.finalizeConnections();
     osimModel.print(newModelName);
+};
+
+// Adds an open Loop controller for muscles
+void addController(OpenSim::Model &osimModel){
+  const OpenSim::Set<OpenSim::Actuator> &actuators = osimModel.getActuators();
+  OpenSim::PrescribedController *openLoopController = new OpenSim::PrescribedController();
+  openLoopController->setName("openLoopController");
+  openLoopController->setActuators(actuators);
+
+  /// Default neural excitation function
+  const int nSamples = int(T_MAX/SAMPLING_DT)+1;
+  SimTK::Vector vecExt(nSamples, DEFAULT_EXCITATION);
+  SimTK::Vector vecTime(nSamples);
+  std::iota(vecTime.begin(), vecTime.end(), 0);
+  std::for_each(vecTime.begin(), vecTime.end(), [](double &value){ value*=SAMPLING_DT;});
+
+  // Setting up the individual neural excitation function for different acutators
+  for(size_t i=0; i<actuators.getSize(); i++){
+    OpenSim::PiecewiseLinearFunction* func = new OpenSim::PiecewiseLinearFunction(nSamples, 
+                                                  vecTime.getContiguousScalarData(), 
+                                                  vecExt.getContiguousScalarData(), "ExcitationSignal");
+    openLoopController->prescribeControlForActuator( actuators[i].getName(), func);
+  }
+  osimModel.addController(openLoopController);
 };
 
 void addReporters(OpenSim::Model &osimModel){
   //// Adding reporter for the forces applied on the ground by the feet
   OpenSim::Joint &groundFeetJoint = osimModel.updJointSet().get("ground_calcn_r");
   OpenSim::TableReporter_<SimTK::SpatialVec> *feetForceReporter = new OpenSim::TableReporter_<SimTK::SpatialVec>();
-  feetForceReporter->set_report_time_interval(reportInterval);
+  feetForceReporter->set_report_time_interval(REPORT_INTERVAL);
   feetForceReporter->addToReport(groundFeetJoint.getOutput("reaction_on_parent"));
   feetForceReporter->setName("feetForceReporter");
   osimModel.addComponent(feetForceReporter);
 
   //// Adding the activation reporter
   OpenSim::TableReporter *muscleActivReporter = new OpenSim::TableReporter();
-  muscleActivReporter->set_report_time_interval(reportInterval);
+  muscleActivReporter->set_report_time_interval(REPORT_INTERVAL);
   muscleActivReporter->setName("muscleActivReporter");
   OpenSim::Set<OpenSim::Muscle> &muscleSet = osimModel.updMuscles();
   for(size_t i=0; i<muscleSet.getSize(); ++i){
@@ -33,7 +57,6 @@ void addReporters(OpenSim::Model &osimModel){
   #endif
   osimModel.addComponent(muscleActivReporter);
 
-
   #ifndef Standing
     //// Adding coordiante value and speed reporter
     const OpenSim::CoordinateSet &coordSet = osimModel.getCoordinateSet();
@@ -41,7 +64,7 @@ void addReporters(OpenSim::Model &osimModel){
                                               coordSet.getIndex("knee_angle"), 
                                               coordSet.getIndex("ankle_angle")};
     OpenSim::TableReporter* coordReporter = new OpenSim::TableReporter();
-    coordReporter->set_report_time_interval(reportInterval);
+    coordReporter->set_report_time_interval(REPORT_INTERVAL);
     coordReporter->setName("coordReporter");
     for(auto ind : coordinateIndices){
       coordReporter->addToReport(coordSet[ind].getOutput("value"));
@@ -51,36 +74,12 @@ void addReporters(OpenSim::Model &osimModel){
   #endif
 };
 
-// Adds an open Loop controller for muscles
-void addController(OpenSim::Model &osimModel, const double tUB){
-  const OpenSim::Set<OpenSim::Actuator> &actuators = osimModel.getActuators();
-  OpenSim::PrescribedController *openLoopController = new OpenSim::PrescribedController();
-  openLoopController->setName("openLoopController");
-  openLoopController->setActuators(actuators);
-
-  /// Default neural excitation function
-  const int nSamples = int(tUB/samplingDt)+1;
-  SimTK::Vector vecExt(nSamples, defaultExcitationController);
-  SimTK::Vector vecTime(nSamples);
-  std::iota(vecTime.begin(), vecTime.end(), 0);
-  std::for_each(vecTime.begin(), vecTime.end(), [](double &value){ value*=samplingDt;});
-
-  // Setting up the individual neural excitation function for different acutators
-  for(size_t i=0; i<actuators.getSize(); i++){
-    OpenSim::PiecewiseLinearFunction* func = new OpenSim::PiecewiseLinearFunction(nSamples, 
-                                                  vecTime.getContiguousScalarData(), 
-                                                  vecExt.getContiguousScalarData(), "ExcitationSignal");
-    openLoopController->prescribeControlForActuator( actuators[i].getName(), func);
-  }
-  osimModel.addController(openLoopController);
-};
-
 /*
 This function interpolates node values for the controller from the neural excitation parameterizations
 Sets u0 = a0
 */
 void setExcitations(OpenSim::Model &osimModel, SimTK::State &si0, const ParameterizationType parameterization, 
-                                              const int numComps, const double *compValues){ 
+                                              const double *compValues){ 
 
   OpenSim::PrescribedController *openLoopController = dynamic_cast<OpenSim::PrescribedController*>(
                                                     &osimModel.updComponent("/controllerset/openLoopController"));
@@ -93,7 +92,7 @@ void setExcitations(OpenSim::Model &osimModel, SimTK::State &si0, const Paramete
     OpenSim::PiecewiseLinearFunction *actuatorExtFuncPtr = dynamic_cast<OpenSim::PiecewiseLinearFunction*>
                                                                                   (&actuatorExtFuncs[i]);
 
-    const SimTK::Vector params(numVarsPerComp*numComps, &compValues[numVarsPerComp*numComps*i]);
+    const SimTK::Vector params(numVarsPerComp*NUM_COMPS, &compValues[numVarsPerComp*NUM_COMPS*i]);
     const std::unique_ptr<CustomFunction> parameterizationExtFuncPtr = mapExtFuncPtr[parameterization](params);
 
     OpenSim::ScalarActuator *actuator = dynamic_cast<OpenSim::ScalarActuator*>(&actuatorSet[i]);
@@ -123,7 +122,7 @@ void setExcitations(OpenSim::Model &osimModel, SimTK::State &si0, const Paramete
 // Runs a forward simulation and returns the computed costs
 std::vector<double> runSimulation(OpenSim::Model &osimModel, const ParameterizationType &parameterization, 
                                                               const int numDecisionVars,
-                                                              const double *controls, const int numComps,
+                                                              const double *controls,
                                                               const bool visualizeResults,
                                                               const bool saveResults,
                                                               const std::string outputPrefix){
@@ -166,12 +165,12 @@ std::vector<double> runSimulation(OpenSim::Model &osimModel, const Parameterizat
 
   try{
     // Setting the excitation
-    setExcitations(osimModel, si, parameterization, numComps, controls);
+    setExcitations(osimModel, si, parameterization, controls);
     osimModel.equilibrateMuscles(si);
 
     // Performing the forward simulation
     OpenSim::Manager manager(osimModel);
-    manager.setIntegratorAccuracy(integratorAccuracy);
+    manager.setIntegratorAccuracy(INTEGRATOR_ACCURACY);
     manager.initialize(si);
 
     const double simT = controls[numDecisionVars-1];
@@ -241,7 +240,7 @@ double computeCostActivation(const OpenSim::TimeSeriesTable &activationTimeSerie
   }
 
   // Averaging over all muscles
-  result = sqrt(result*reportInterval/activationTimeSeries.getNumColumns());
+  result = sqrt(result*REPORT_INTERVAL/activationTimeSeries.getNumColumns());
   return result;
 }
 
@@ -255,12 +254,12 @@ double computeCostDiffActivation(const OpenSim::TimeSeriesTable &activationTimeS
   }
 
   // Averaging over all Actuators
-  result = sqrt(result/(reportInterval*activationTimeSeries.getNumColumns()));
+  result = sqrt(result/(REPORT_INTERVAL*activationTimeSeries.getNumColumns()));
   return result;
 }
 
 // Computes the costs associated with feet
-SimTK::Vec4 computeCostFeet(OpenSim::Model &model, const SimTK::State &si0, const double seatOffTime){
+SimTK::Vec3 computeCostFeet(OpenSim::Model &model, const SimTK::State &si0, const double seatOffTime){
   using namespace Eigen;
 
   OpenSim::TableReporter_<SimTK::SpatialVec> *feetForceReporter = dynamic_cast<OpenSim::TableReporter_<SimTK::SpatialVec>*>(
@@ -286,20 +285,13 @@ SimTK::Vec4 computeCostFeet(OpenSim::Model &model, const SimTK::State &si0, cons
   auto torqueZ = feetWrenchMat(Eigen::all,2);
   auto forceX = feetWrenchMat(Eigen::all,3);
   auto forceY = feetWrenchMat(Eigen::all,4);
-  Eigen::MatrixXd torqueForceMat = feetWrenchMat(Eigen::all, {2,4});
 
-  auto slip = forceX.cwiseAbs() + mu_static*forceY;
+  auto slip = forceX.cwiseAbs() + MU_STATIC*forceY;
   double costSlip = std::max(0.0, slip.maxCoeff());
 
   auto zmp = torqueZ.array()/forceY.array();
   double costZMP = std::max(fabs(zmp.maxCoeff()-(heelPos[0]+toesPos[0])/2), 
                             fabs(zmp.minCoeff()-(heelPos[0]+toesPos[0])/2));
-
-  Eigen::Matrix2d A;
-  A << heelPos[0], toesPos[0], 1, 1;
-  const Eigen::Matrix2d Ainv = A.inverse();
-  auto heelToeForce = torqueForceMat*Ainv.transpose();
-  double costUnilaterality = std::max(0.0, heelToeForce.maxCoeff());
 
   const double tF = feetWrenchTimeSeries.getIndependentColumn().back();
   double costAcc = 0.0;
@@ -329,30 +321,7 @@ SimTK::Vec4 computeCostFeet(OpenSim::Model &model, const SimTK::State &si0, cons
 
   feetForceReporter->clearTable();
 
-  return SimTK::Vec4(costZMP, costUnilaterality, costSlip, costAcc);
-}
-
-//// Can not convert to timeseries as it will break the storage due to constraint being disabled
-double computeCostChair(const OpenSim::Storage &forceStorage){
-  OpenSim::Array<double> forceTimeArray;
-  forceStorage.getTimeColumn(forceTimeArray);
-  const std::vector<double> tVec(forceTimeArray.get(), forceTimeArray.get()+forceTimeArray.getSize());
-  const std::vector<double> dtVec = dVector(tVec);
-
-  //// Force applied by the ground to keep the constraint
-  const int indChairForceY = forceStorage.getStateIndex("seatConstraint_ground_Fy");
-  std::vector<double> chairForceYTVec(tVec.size(), 0.0);
-  double *chairForceYTVecRawPtr = chairForceYTVec.data();
-  forceStorage.getDataColumn(indChairForceY, chairForceYTVecRawPtr);
-
-  std::vector<double> weightVec = expWeightVec(tau_ChairForce, tVec, tVec.back());
-  std::transform(weightVec.begin(), weightVec.end(), dtVec.begin(), weightVec.begin(), std::multiplies<double>());
-  const double costChairForce = fabs(std::inner_product(chairForceYTVec.begin(), chairForceYTVec.end(), weightVec.begin(), 0.0,
-                                                  std::plus<double>(), [](const double chairForce, const double w){
-                                                    return w*fabs(chairForce);
-                                                  }));
-
-  return costChairForce;
+  return SimTK::Vec3(costZMP, costSlip, costAcc);
 }
 
 #ifdef Assisted
@@ -495,7 +464,6 @@ void readVector(std::vector<double> &vecOutput, std::string fileName, const int 
 void writeVector(const std::vector<double> x, const std::string fileName, std::ios_base::openmode writingMode){
   // Logging the cost function
   std::ofstream logFile;
-  logFile << std::fixed << std::setprecision(10) << std::endl;
 
   logFile.open(fileName, writingMode);
   for(auto i : x){
@@ -504,12 +472,3 @@ void writeVector(const std::vector<double> x, const std::string fileName, std::i
   logFile << "\n";
   logFile.close();
 };
-
-std::vector<double> expWeightVec(const double tau, const std::vector<double> &timeVec, const double tF){
-  std::vector<double> result(timeVec.size());
-  std::transform(timeVec.begin(), timeVec.end(), result.begin(), 
-                [tau, tF](const double &t){
-                  return getExpWeight(tau, t, tF);
-                });
-  return result;
-}

@@ -1,12 +1,13 @@
 ﻿/* -------------------------------------------------------------------------- *
- *  Used to synthesize assisted/Unassisted Sit to Stand and Sitting motions
- *  Look hyperparams____.txt and universalConsts.txt files for parameters
-  */
+Used to synthesize assisted/Unassisted Sit to Stand and Sitting motions
+Look universalConsts.h and weights__.txt files for hyper parameters
 
-/* -------------------------------------------------------------------------- *
-* To Do : 1) Automate seat constraint index
+To Do :
+1) Automate seat constraint index. 
+2) Patch forcestorage for seat contraint release
+Until 1) and 2) make sure that seat constrainst is the last foce added to the model
+and correct index is passed to seatConstraintHandler 
 */
-//==============================================================================
 
 #include "OpenSim/OpenSim.h"
 #include "modelFuns.h"
@@ -21,143 +22,118 @@
 
 using namespace libcmaes;
 
-//// Parameterization used for the muscle excitation trajectories
 const ParameterizationType parameterization = ParameterizationType::PWLinearFixedDt;
-
-// Used to load the human model 
 std::mutex threadLock;
 
-// Main Function
+/*
+Performs N_RESTART independent optimizations and saves the optimal trajectory with 
+the lowest cost among them.
+
+Logging is done in a time stamp based unique folder created inside results directory
+The same directory can be used to resume optimization.
+
+If resume directory is provided the guess inside initialMeanFile.txt is overwritten
+*/
 int main(int argc, const char *argv[])
 {
     try {
         if (argc != 4){
             std::cout << "Inappropriate number of function arguments" << std::endl;
-            std::cout << "Correct Format: funcName.exe initialGuessFile.txt hyperParametersFile.txt resumeDirectory/null)" 
-                      << std::endl;
+            std::cout << "Correct Format: funcName.exe initialMeanFile.txt"
+                        "weightsFile.txt resumeDirectory/null" << std::endl;
             exit(1);
         }
 
-        const std::string initialGuessFileName = argv[1]; 
-        const std::string hyperParamFileName = argv[2];
+        const std::string initMeanFileName = argv[1]; 
+        const std::string weightsFileName = argv[2];
 
         bool resumeFlag = false;
         std::string resumeDir = argv[3];
         if(resumeDir != "null"){
-            resumeDir = argv[3];
             resumeFlag = true;
         }
 
-        // Vector containing the hyper parameters
-        std::vector<double> hyperParamsVec(numHyperParams);
-        readVector(hyperParamsVec, hyperParamFileName);
+        std::vector<double> weightsVec(numWeights);
+        readVector(weightsVec, weightsFileName);
 
-        // Number of variables 
-        const int numComps = int(hyperParamsVec[0]);
         const int numVarsPerComp = mapNumVarsPerComp[parameterization];
-        const int numDecisionVars = numVarsPerComp*numComps*numExtFuncs+1;
-
-        // The initial guess (mean) is overwritten if an resume solution is provided
-        std::vector<double> initGuess(numDecisionVars);
+        const int numDecisionVars = numVarsPerComp*NUM_COMPS*numExtFuncs+1;
+        std::vector<double> initMean(numDecisionVars);
         #ifdef Standing
-            readVector(initGuess, initialGuessFileName, 1, 1, 2);
+            readVector(initMean, initMeanFileName, 1, 1, 2);
         #else
-            readVector(initGuess, initialGuessFileName);
+            readVector(initMean, initMeanFileName);
         #endif
+        std::vector<double> initStepSize(numDecisionVars), upperBound(numDecisionVars), 
+                            lowerBound(numDecisionVars);
+        readVector(initStepSize, STD_DEV_FILE);
+        readVector(lowerBound, LOWER_BOUNDS_FILE);
+        readVector(upperBound, UPPER_BOUNDS_FILE);
 
-        //// Standard deviations and bounds for the CMAES algorithm
-        std::vector<double> initStepSize(numDecisionVars), upperBound(numDecisionVars), lowerBound(numDecisionVars);
-        readVector(initStepSize,"stdDev.txt");
-        readVector(lowerBound,"lowerBound.txt");
-        readVector(upperBound,"upperBound.txt");
-        //for(int i=0; i<numExtFuncs; ++i){
-        //    for(int j=0; j<numComps; ++j){
-        //        for(int k=0; k<numVarsPerComp; ++k){
-        //            initStepSize[(numVarsPerComp*i+k)*numComps+j] = hyperParamsVec[1+k];
-        //            lowerBound[(numVarsPerComp*i+k)*numComps+j] = hyperParamsVec[1+numVarsPerComp+k];
-        //            upperBound[(numVarsPerComp*i+k)*numComps+j] = hyperParamsVec[1+2*numVarsPerComp+k];
-        //        }
-        //    }
-        //}
-
-        // Weights used by the cost function
-        int offset = numHyperParams-numWeights;
-        std::vector<double> costWeights(hyperParamsVec.begin()+offset, hyperParamsVec.begin()+offset+numWeights);
-
-        // Setting up the log files and folder
         const std::string logFolder = createUniqueFolder("results/");
         const std::string plotFile = logFolder + "plotting.dat";
 
-        // Adding the geometry directory to the search path
         OpenSim::ModelVisualizer::addDirToGeometrySearchPaths("../geometry");
+        addComponentsToModel(modelName, newModelName);
 
-        // Adds a prescribed controller with piecewise linear functions to the model and saves a copy of it 
-        addComponentsToModel(modelName, newModelName, simulationDuration);
-
-        // The objection function
-        FitFunc objectiveFunc = [&numComps, &costWeights](const double* newControls, const int numDecisionVars){
-            
-            // Reading the human model 
+        FitFunc objectiveFunc = [&weightsVec](const double* newControls, const int numDecisionVars){
             std::unique_lock<std::mutex> locker(threadLock);
-            OpenSim::Model osimModel(newModelName);
+                OpenSim::Model osimModel(newModelName);
             locker.unlock();
 
-            // Running the forward simulation
-            const std::vector<double> costs = runSimulation(osimModel, parameterization, numDecisionVars, newControls, numComps);
-
-            // Computing the weighted cost
-            const double value = std::inner_product(costWeights.begin(), costWeights.end(), costs.begin(), 0.0);
+            const std::vector<double> costs = runSimulation(osimModel, parameterization, 
+                                                            numDecisionVars, newControls);
+            const double value = std::inner_product(weightsVec.begin(), weightsVec.end(), costs.begin(), 0.0);
             return value;
         };
 
-        // Progress function used to write logs and resumption files
         ProgressFunc<CMAParameters<GenoPhenoType>,CMASolutions> writeLogs = [&logFolder]
-                    (const CMAParameters<GenoPhenoType> &cmaparams, const CMASolutions &cmasols){
-            progressFunc(cmaparams, cmasols, logFolder);
-            return 0;
+            (const CMAParameters<GenoPhenoType> &cmaparams, const CMASolutions &cmasols){
+                progressFunc(cmaparams, cmasols, logFolder);
+                return 0;
         };
 
-        // CMA parameters
-        CMAParameters<GenoPhenoType> cmaparams(initGuess, initStepSize, -1, lowerBound, upperBound);
+        CMAParameters<GenoPhenoType> cmaparams(initMean, initStepSize, -1, lowerBound, upperBound);
         cmaparams.set_algo(aCMAES);
         cmaparams.set_fplot(plotFile);
-        cmaparams.set_max_hist(histSize);
-        cmaparams.set_ftolerance(fTolerance);
-        cmaparams.set_max_iter(maxIter);
+        cmaparams.set_max_hist(HIST_SIZE);
+        cmaparams.set_ftolerance(F_TOLERANCE);
+        cmaparams.set_max_iter(MAX_ITER);
         cmaparams.set_noisy();
         cmaparams.set_mt_feval(true);
 
-        // Running the optimization nRestart times
         CMASolutions cmasols;
-        for(int i=0; i<nRestarts; ++i){
+        for(int i=0; i<N_RESTARTS; ++i){
             CMASolutions cmasols_temp;
             auto seed = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>
-                                                (std::chrono::high_resolution_clock::now().time_since_epoch()).count());
+                            (std::chrono::high_resolution_clock::now().time_since_epoch()).count());
             cmaparams.set_seed(seed);
             cmaparams.initialize_parameters();
 
             if(i==0 && resumeFlag){
-                    CMASolutions resumeSolution = resumeDistribution(resumeDir, cmaparams);
-                    cmasols_temp = cmaes<GenoPhenoType>(objectiveFunc, cmaparams, writeLogs, nullptr, resumeSolution);
+                CMASolutions resumeSolution = resumeDistribution(resumeDir, cmaparams);
+                cmasols_temp = cmaes<GenoPhenoType>(objectiveFunc, cmaparams, writeLogs, nullptr, 
+                                                    resumeSolution);
             }
             else{
-                    cmasols_temp = cmaes<GenoPhenoType>(objectiveFunc, cmaparams, writeLogs);
+                cmasols_temp = cmaes<GenoPhenoType>(objectiveFunc, cmaparams, writeLogs);
             }
 
-            if(cmasols.candidates().empty() || cmasols_temp.get_best_seen_candidate().get_fvalue() < cmasols.get_best_seen_candidate().get_fvalue())
+            if(cmasols_temp.get_best_seen_candidate().get_fvalue() < 
+                cmasols.get_best_seen_candidate().get_fvalue() ||  cmasols.candidates().empty()){
                 cmasols = cmasols_temp;
+            }
         }
 
-        // Saving the results from best simulation
+        std::cout << "Optimization Finished" << std::endl;
+
         Eigen::VectorXd optimParams = cmaparams.get_gp().pheno(cmasols.get_best_seen_candidate().get_x_dvec());
         OpenSim::Model osimModel(newModelName);
-        std::vector<double> finalCosts = runSimulation(osimModel, parameterization, numDecisionVars, optimParams.data(), numComps, true, true, "optimResults");
-        const double totalCost = std::inner_product(finalCosts.begin(), finalCosts.end(), costWeights.begin(), 0.0); 
+        std::vector<double> finalCosts = runSimulation(osimModel, parameterization, numDecisionVars, 
+                                                        optimParams.data(), true, true, "optimResults");
+
+        const double totalCost = std::inner_product(finalCosts.begin(), finalCosts.end(), weightsVec.begin(), 0.0); 
         std::cout << "Optimized Cost : " << totalCost << std::endl;
-
-        // Exit message
-        std::cout << "Finished Optimization" << std::endl;
-
     }
     catch(const std::string& ex){
         std::cout << ex << std::endl;
