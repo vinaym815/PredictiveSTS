@@ -65,7 +65,7 @@ const double integratorAccuracy = 1.0e-4;   // Desired Integration Accuracy
 const double defaultExcitationController = 0.05;
 
 // Optimization Setup 
-const double tau_ChairForce = 2.0*simulationDuration/3.0;
+const double tau_ChairForce = simulationDuration/8.0;
 const int nRestarts = 3;
 const double fTolerance = 0.5;
 const int histSize = 250;

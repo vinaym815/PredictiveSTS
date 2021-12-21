@@ -1,11 +1,11 @@
 # Some constants are present in the universalConsts.h
 # Segments the excitation profile is made up of 
 16
-# stdDev Ai
-0.3
-# lower bounds Ai
+# stdDev Ai (Defunct)
+0.6
+# lower bounds Ai (Defunct)
 -0.2
-# upper bounds Ai
+# upper bounds Ai (Defunct)
 1.0
 # Cost Weights: progress, vTf, feet-mg, chairForce, a, da, limitForce, ZMP, unilaterality, slip 
-600, 0.2, 0.2, 0.4, 150, 60, 10, 2500, 0.0, 0.1
+600, 0.1, 0.15, 0.4, 150, 60, 10, 1000, 0.0, 0.1

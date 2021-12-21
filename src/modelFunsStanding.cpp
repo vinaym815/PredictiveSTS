@@ -29,7 +29,7 @@ void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel,
   costs[0] = df/d0;
   costs[1] = progress*computeCostJointVel(osimModel, siF);
   costs[2] = progress*feetCosts[3];
-  costs[3] = computeCostChair(forceStorage);
+  costs[3] = (1.0-progress)*computeCostChair(forceStorage);
   costs[4] = computeCostActivation(activationTimeSeries);
   costs[5] = computeCostDiffActivation(activationTimeSeries);
   costs[6] = computeCostLimitTorque(forceStorage);

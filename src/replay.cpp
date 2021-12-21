@@ -50,7 +50,7 @@ int main(int argc, char *argv[]){
   }
 
   #ifdef Standing
-    const std::vector<double> costWeights{600, 0.2, 0.2, 0.4, 150, 60, 10, 2500, 0.0, 0.1, 0.2};
+    const std::vector<double> costWeights{600, 0.1, 0.15, 0.4, 150, 60, 10, 1000, 0.0, 0.1, 0.2};
   #else
     const std::vector<double> costWeights{5, 4, 200, 80, 10, 2500, 0.1, 1.0, 1.0};
   #endif
