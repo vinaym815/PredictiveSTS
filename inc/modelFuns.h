@@ -8,7 +8,6 @@ Declaration of functions used to
 */
 
 #include <memory>
-#include <sstream>
 #include <math.h>
 #include <algorithm>
 
@@ -20,9 +19,7 @@ Declaration of functions used to
 #include "assistanceForceVisualization.h"
 #include "activationPointActuator.h"
 
-using namespace libcmaes;
-
-/* 
+/*
 Adds an feeforward controller to the models and saves a copy of it.
 The copy is used to run simulation to avoid conflicts
 */
@@ -32,11 +29,11 @@ void addController(OpenSim::Model &osimModel);
 // Adds different reporters used to compute costs
 void addReporters(OpenSim::Model &osimModel);
 
-// Sets up the actuator excitation trajectories for forward simulation 
+// Sets up the actuator excitation trajectories for forward simulation
 // by sampling the node points from parameterization.
 // Also sets up a0=u0
-void setExcitations(OpenSim::Model &osimModel, SimTK::State &si0, 
-                    const ParameterizationType parameterization, 
+void setExcitations(OpenSim::Model &osimModel, SimTK::State &si0,
+                    const ParameterizationType parameterization,
                     const double *compValues);
 
 // Runs a forward simulation and returns the costs
@@ -61,8 +58,8 @@ inline double eucledianDis(const SimTK::Vec3 v1, const SimTK::Vec3 v2){
 std::vector<double> expWeightVec(const double tau, const std::vector<double> &timeVec, const double T);
 
 // get exponentially increase weight 
-inline double getExpWeight(const double tConst, const double t, const double tF){
-    return std::pow(SimTK::E,t/tConst)/(tConst*(std::pow(SimTK::E, tF/tConst) - 1));
+inline double getExpWeight(const double tau, const double t, const double T){
+    return std::pow(SimTK::E,t/tau)/(tau*(std::pow(SimTK::E, T/tau) - 1));
 };
 
 #else
@@ -79,21 +76,6 @@ SimTK::Vec3 computeCostFeet(OpenSim::Model &model, const SimTK::State &si0, cons
 #ifdef Assisted
 double computeCostAssistance(const OpenSim::Storage &forceStorage);
 #endif
-
-// reads fileName(delimiter=",") from startLine to endLine into vecOutput
-void readVector(std::vector<double> &vecOutput, std::string fileName, 
-                const int startLine=1, const int endLine=1000, const int offset=0);
-
-void writeVector(const std::vector<double> x, const std::string fileName, 
-                std::ios_base::openmode writingMode= std::ios::app);
-
-// Creates a timestamp based unique folder in the specified directory 
-std::string createUniqueFolder(const std::string path);
-
-// Logs the optimization progress
-void progressFunc(const CMAParameters<GenoPhenoType> &cmaparams, const CMASolutions &cmasols, 
-                const std::string logFolder);
-CMASolutions resumeDistribution(const std::string dirName, CMAParameters<GenoPhenoType> &cmaparams);
 
 // returns the adjacent_difference of vector V
 template <typename V>

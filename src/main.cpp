@@ -3,16 +3,17 @@ Used to synthesize assisted/Unassisted Sit to Stand and Sitting motions
 Look universalConsts.h and weights__.txt files for hyper parameters
 
 To Do :
-1) Automate seat constraint index. 
+1) Automate seat constraint index.
 2) Patch forcestorage for seat contraint release
 Until 1) and 2) make sure that seat constrainst is the last foce added to the model
-and correct index is passed to seatConstraintHandler 
+and correct index is passed to seatConstraintHandler
 */
 
 #include "OpenSim/OpenSim.h"
 #include "modelFuns.h"
 #include "cmaes.h"
 #include "universalConsts.h"
+#include "utility.h"
 
 #include <iostream>
 #include <mutex>
@@ -26,7 +27,7 @@ const ParameterizationType parameterization = ParameterizationType::PWLinearFixe
 std::mutex threadLock;
 
 /*
-Performs N_RESTART independent optimizations and saves the optimal trajectory with 
+Performs N_RESTART independent optimizations and saves the optimal trajectory with
 the lowest cost among them.
 
 Logging is done in a time stamp based unique folder created inside results directory
