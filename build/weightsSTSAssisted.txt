@@ -1,0 +1,2 @@
+# Cost Weights: comY, comX, comVel, chairForce, a, da, limitForce, ZMP, unilaterality, slip, assistance 
+600, 0.1, 0.15, 0.4, 150, 60, 10, 1000, 0.1, 0.2
