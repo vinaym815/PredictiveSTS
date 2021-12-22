@@ -44,10 +44,10 @@ OSIMPLUGIN_API void RegisterTypes_osimPlugin()
 
 dllObjectInstantiator::dllObjectInstantiator() 
 { 
-        registerDllClasses(); 
+    registerDllClasses(); 
 } 
     
 void dllObjectInstantiator::registerDllClasses() 
 { 
-        RegisterTypes_osimPlugin(); 
+    RegisterTypes_osimPlugin(); 
 } 

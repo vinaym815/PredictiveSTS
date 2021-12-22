@@ -16,9 +16,9 @@ void addController(OpenSim::Model &osimModel){
     SimTK::Vector vecExt(nSamples, DEFAULT_EXCITATION);
     SimTK::Vector vecTime(nSamples);
     std::iota(vecTime.begin(), vecTime.end(), 0);
-    std::for_each(vecTime.begin(), vecTime.end(), [](double &value){ value*=SAMPLING_DT;});
-    for(size_t i=0; i<actuators.getSize(); i++){
-      OpenSim::PiecewiseLinearFunction* func = new OpenSim::PiecewiseLinearFunction(nSamples,
+    std::for_each(vecTime.begin(), vecTime.end(), [](double &value){ value *= SAMPLING_DT;});
+    for(size_t i=0; i<actuators.getSize(); ++i){
+      OpenSim::PiecewiseLinearFunction *func = new OpenSim::PiecewiseLinearFunction(nSamples,
                                                     vecTime.getContiguousScalarData(),
                                                     vecExt.getContiguousScalarData(),
                                                     "ExcitationSignal");
@@ -38,15 +38,15 @@ void addReporters(OpenSim::Model &osimModel){
     osimModel.addComponent(feetForceReporter);
     OpenSim::TableReporter *actuatorActivReporter = new OpenSim::TableReporter();
     actuatorActivReporter->set_report_time_interval(REPORT_INTERVAL);
-    actuatorActivReporter->setName("muscleActivReporter");
+    actuatorActivReporter->setName("actuatorActivReporter");
     OpenSim::Set<OpenSim::Muscle> &muscleSet = osimModel.updMuscles();
     for(size_t i=0; i<muscleSet.getSize(); ++i){
         actuatorActivReporter->addToReport(muscleSet[i].getOutput("activation"));
     }
     #ifdef Assisted
-        OpenSim::ActivationPointActuator *assistFx = dynamic_cast<OpenSim::ActivationPointActuator *>
+        OpenSim::ActivationPointActuator *assistFx = dynamic_cast<OpenSim::ActivationPointActuator*>
                                                     (&osimModel.updForceSet().get("assistFx"));
-        OpenSim::ActivationPointActuator *assistFy = dynamic_cast<OpenSim::ActivationPointActuator *>
+        OpenSim::ActivationPointActuator *assistFy = dynamic_cast<OpenSim::ActivationPointActuator*>
                                                     (&osimModel.updForceSet().get("assistFy"));
 
         actuatorActivReporter->addToReport(assistFx->getOutput("activation"));
@@ -59,7 +59,7 @@ void addReporters(OpenSim::Model &osimModel){
                                                 coordSet.getIndex("knee_angle"),
                                                 coordSet.getIndex("ankle_angle")};
 
-        OpenSim::TableReporter* coordReporter = new OpenSim::TableReporter();
+        OpenSim::TableReporter *coordReporter = new OpenSim::TableReporter();
         coordReporter->set_report_time_interval(REPORT_INTERVAL);
         coordReporter->setName("coordReporter");
         for(auto ind : coordinateIndices){
@@ -82,7 +82,7 @@ void setExcitations(OpenSim::Model &osimModel, SimTK::State &si0, const Paramete
     for(size_t i=0; i<numActuators; ++i){
         OpenSim::PiecewiseLinearFunction *actuatorExtFuncPtr = dynamic_cast<OpenSim::PiecewiseLinearFunction*>
                                                                 (&actuatorExtFuncs[i]);
-        const SimTK::Vector params(numVarsPerComp*NUM_COMPS, &compValues[numVarsPerComp*NUM_COMPS*i]);
+        const SimTK::Vector params(numVarsPerComp * NUM_COMPS, &compValues[numVarsPerComp * NUM_COMPS * i]);
         const std::unique_ptr<CustomFunction> parameterizationExtFuncPtr = mapExtFuncPtr[parameterization](params);
         OpenSim::ScalarActuator *actuator = dynamic_cast<OpenSim::ScalarActuator*>(&actuatorSet[i]);
         if(actuator == NULL){
@@ -130,9 +130,9 @@ std::vector<double> runSimulation(OpenSim::Model &osimModel, const Parameterizat
     osimModel.updMultibodySystem().addEventHandler(releaseSeatConstraint);
 
     SimTK::State &si = osimModel.initializeState();
-    si.setTime(t0);
+    si.setTime(T0);
 
-    std::vector<double> costs(numWeights);
+    std::vector<double> costs(NUM_WEIGHTS);
     std::fill(costs.begin(), costs.end(), 1e6);
 
     try{
@@ -144,18 +144,18 @@ std::vector<double> runSimulation(OpenSim::Model &osimModel, const Parameterizat
         manager.setIntegratorAccuracy(INTEGRATOR_ACCURACY);
         manager.initialize(si);
 
-        const double simT = controls[numDecisionVars-1];
+        const double simT = controls[numDecisionVars - 1];
         const SimTK::State &siF = manager.integrate(simT);
 
         double seatOffTime = releaseSeatConstraint->getSeatRleaseTime();
-        if (seatOffTime<0){
+        if (seatOffTime < 0.0){
             seatOffTime = siF.getTime();
         }
 
         // The computingCosts function clears the reporter memories. Therefore, exports needs to be done
         //before the cost is computed
         if(saveResults){
-            OpenSim::STOFileAdapter_<double>::write(manager.getStatesTable(), outputPrefix+".sto");
+            OpenSim::STOFileAdapter_<double>::write(manager.getStatesTable(), outputPrefix + ".sto");
             frcReporter->getForceStorage().print(outputPrefix + "_force.mot");
             OpenSim::TableReporter_<SimTK::SpatialVec> *feetForceReporter = 
                                             dynamic_cast<OpenSim::TableReporter_<SimTK::SpatialVec>*>
@@ -167,7 +167,7 @@ std::vector<double> runSimulation(OpenSim::Model &osimModel, const Parameterizat
         #ifdef Standing
             computeCostsStanding(costs, osimModel, si0, siF, seatOffTime);
         #else
-            computeCostsSitting(osimModel, si0, costs);
+            computeCostsSitting(costs, osimModel, si0);
         #endif
     }
     catch(const std::string& ex){
@@ -182,13 +182,12 @@ std::vector<double> runSimulation(OpenSim::Model &osimModel, const Parameterizat
     return costs;
 };
 
-// Computes the penalty for using the mechanical limits at joints
 double computeCostLimitTorque(const OpenSim::Storage &forceStorage){
-    double result{0};
+    double result{0.0};
     OpenSim::Array<double> timeArray;
     forceStorage.getTimeColumn(timeArray);
 
-    const std::vector<double> tVec(timeArray.get(), timeArray.get()+timeArray.size());
+    const std::vector<double> tVec(timeArray.get(), timeArray.get() + timeArray.size());
     const std::vector<double> dtVec = dVector(tVec);
     const std::vector<std::string> limitTorqueLabels{"hip_flexion_LimitForce", "knee_angle_LimitForce",
                                                     "ankle_angle_LimitForce"};
@@ -199,14 +198,13 @@ double computeCostLimitTorque(const OpenSim::Storage &forceStorage){
           forceStorage.getDataColumn(limitTorqueLabel, limitTorqueVecPtr);
           result += std::inner_product(limitTorqueVec.begin(), limitTorqueVec.end(), dtVec.begin(), 0.0,
                                         std::plus<double>(), [](const double &limitTorqueT, const double &dt){
-                                            return fabs(limitTorqueT)*dt;
+                                            return fabs(limitTorqueT) * dt;
                                       });
     }
-    result = result/(limitTorqueLabels.size());
+    result = result / (limitTorqueLabels.size());
     return result;
 }
 
-// Computes the cost associated with muscle activation
 double computeCostActivation(const OpenSim::TimeSeriesTable &activationTimeSeries){
     double result{0.0};
     for(size_t i=0; i<activationTimeSeries.getNumColumns(); ++i){
@@ -214,11 +212,10 @@ double computeCostActivation(const OpenSim::TimeSeriesTable &activationTimeSerie
         result += std::inner_product(activVec.begin(), activVec.end(), activVec.begin(), 0.0);
     }
 
-    result = sqrt(result*REPORT_INTERVAL/activationTimeSeries.getNumColumns());
+    result = sqrt(result * REPORT_INTERVAL / activationTimeSeries.getNumColumns());
     return result;
 }
 
-// Computes the cost associated with rate of change of muscle activation
 double computeCostDiffActivation(const OpenSim::TimeSeriesTable &activationTimeSeries){
     double result{0.0};
     for(size_t i=0; i<activationTimeSeries.getNumColumns(); ++i){
@@ -227,11 +224,10 @@ double computeCostDiffActivation(const OpenSim::TimeSeriesTable &activationTimeS
         result += std::inner_product(dActivVec.begin(), dActivVec.end(), dActivVec.begin(), 0.0);
     }
 
-    result = sqrt(result/(REPORT_INTERVAL*activationTimeSeries.getNumColumns()));
+    result = sqrt(result / (REPORT_INTERVAL * activationTimeSeries.getNumColumns()));
     return result;
 }
 
-// Computes the costs associated with feet
 SimTK::Vec3 computeCostFeet(OpenSim::Model &model, const SimTK::State &si0, const double seatOffTime){
     using namespace Eigen;
     OpenSim::TableReporter_<SimTK::SpatialVec> *feetForceReporter = dynamic_cast<OpenSim::TableReporter_<SimTK::SpatialVec>*>(
@@ -239,12 +235,12 @@ SimTK::Vec3 computeCostFeet(OpenSim::Model &model, const SimTK::State &si0, cons
     model.realizePosition(si0);
     const OpenSim::PhysicalOffsetFrame *heelCnctFrame = dynamic_cast<const OpenSim::PhysicalOffsetFrame*>
                                                         (&model.updComponent("/bodyset/calcn_r/heel_cnctFrame"));
-    const OpenSim::PhysicalOffsetFrame *toesCnctFrame = dynamic_cast<const OpenSim::PhysicalOffsetFrame *>
+    const OpenSim::PhysicalOffsetFrame *toesCnctFrame = dynamic_cast<const OpenSim::PhysicalOffsetFrame*>
                                                         (&model.getComponent("/bodyset/toes_r/toes_cnctFrame"));
 
     const SimTK::Vec3 heelPos = heelCnctFrame->getPositionInGround(si0);
     const SimTK::Vec3 toesPos = toesCnctFrame->getPositionInGround(si0);
-    const double bodyWeight = model.getTotalMass(si0)*(model.getGravity()[1]);
+    const double bodyWeight = model.getTotalMass(si0) * (model.getGravity()[1]);
 
     //// Forces applied by the feet on the ground
     const auto &feetWrenchTimeSeries = feetForceReporter->getTable();
@@ -255,20 +251,20 @@ SimTK::Vec3 computeCostFeet(OpenSim::Model &model, const SimTK::State &si0, cons
     auto torqueZ = feetWrenchMat(Eigen::all,2);
     auto forceX = feetWrenchMat(Eigen::all,3);
     auto forceY = feetWrenchMat(Eigen::all,4);
-    auto slip = forceX.cwiseAbs() + MU_STATIC*forceY;
+    auto slip = forceX.cwiseAbs() + MU_STATIC * forceY;
     double costSlip = std::max(0.0, slip.maxCoeff());
     auto zmp = torqueZ.array()/forceY.array();
-    double costZMP = std::max(fabs(zmp.maxCoeff()-(heelPos[0]+toesPos[0])/2),
-                              fabs(zmp.minCoeff()-(heelPos[0]+toesPos[0])/2));
+    double costZMP = std::max(fabs(zmp.maxCoeff() - (heelPos[0] + toesPos[0]) / 2.0),
+                              fabs(zmp.minCoeff() - (heelPos[0] + toesPos[0]) / 2.0));
     const double tF = feetWrenchTimeSeries.getIndependentColumn().back();
     double costAcc = 0.0;
     if(seatOffTime<tF){
         const size_t seatOffInd = feetWrenchTimeSeries.getNearestRowIndexForTime(seatOffTime);
-        auto maxForceInd = std::min_element(forceY.begin()+seatOffInd, forceY.end());
+        auto maxForceInd = std::min_element(forceY.begin() + seatOffInd, forceY.end());
         const double maxForce = *maxForceInd;
         const auto offset = std::distance(forceY.begin(), maxForceInd);
-        const double minForce = *std::max_element(forceY.begin()+offset, forceY.end());
-        costAcc += fabs(maxForce-bodyWeight) + fabs(minForce-bodyWeight) + fabs(forceY[forceY.size()-1]-bodyWeight);
+        const double minForce = *std::max_element(forceY.begin() + offset, forceY.end());
+        costAcc += fabs(maxForce - bodyWeight) + fabs(minForce - bodyWeight) + fabs(forceY[forceY.size()-1] - bodyWeight);
     }
     //std::cout << fabs(maxForce-bodyWeight) << ", " << fabs(minForce-bodyWeight)<< ", "
     //            << fabs(forceY[forceY.size()-1]-bodyWeight) << std::endl;
@@ -278,27 +274,25 @@ SimTK::Vec3 computeCostFeet(OpenSim::Model &model, const SimTK::State &si0, cons
 }
 
 #ifdef Assisted
-// Computes the cost associated with external assistance
 double computeCostAssistance(const OpenSim::Storage &forceStorage){
     OpenSim::Array<double> forceTimeArray;
     forceStorage.getTimeColumn(forceTimeArray);
-    const std::vector<double> tVec(forceTimeArray.get(), forceTimeArray.get()+forceTimeArray.getSize());
+    const std::vector<double> tVec(forceTimeArray.get(), forceTimeArray.get() + forceTimeArray.getSize());
     const std::vector<double> dtVec = dVector(tVec);
     const int indAssistFx = forceStorage.getStateIndex("assistFx");
     const int indAssistFy = forceStorage.getStateIndex("assistFy");
     std::vector<double> assistFxTVec(tVec.size(), 0.0);
-    double *assistFxTVecRawPtr = assistFxTVec.data();
-    forceStorage.getDataColumn(indAssistFx, assistFxTVecRawPtr);
+    double *assistFxVecPtr = assistFxTVec.data();
+    forceStorage.getDataColumn(indAssistFx, assistFxVecPtr);
     std::vector<double> assistFyTVec(tVec.size(), 0.0);
-    double *assistFyTVecRawPtr = assistFyTVec.data();
-    forceStorage.getDataColumn(indAssistFy, assistFyTVecRawPtr);
+    double *assistFyVecPtr = assistFyTVec.data();
+    forceStorage.getDataColumn(indAssistFy, assistFyVecPtr);
     std::vector<double> assistForceTVec(tVec.size(), 0.0);
     std::transform(assistFxTVec.begin(), assistFxTVec.end(), assistFyTVec.begin(), assistForceTVec.begin(),
                     [](const double fX, const double fY){
-                        return std::sqrt(fX*fX + fY*fY);
+                        return std::sqrt(fX * fX + fY * fY);
                     });
     const double result = std::inner_product(assistForceTVec.begin(), assistForceTVec.end(), dtVec.begin(), 0.0);
     return result;
 }
 #endif
-

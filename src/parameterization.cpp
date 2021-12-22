@@ -8,18 +8,19 @@ triggering seat release
 PWLinearFixedDt::PWLinearFixedDt(SimTK::Vector params){
 
     int numPoints = params.size();
-    const double dT = T_MAX/(numPoints);
-    SimTK::Vector aTimes(numPoints+1);
-    SimTK::Vector aValues(numPoints+1);
+    const double dT = T_MAX / (numPoints);
+    SimTK::Vector aTimes(numPoints + 1);
+    SimTK::Vector aValues(numPoints + 1);
 
     for(int i=0; i<numPoints+1; ++i){
-        aTimes[i] = i*dT;
+        aTimes[i] = i * dT;
         if (i==0){
             aValues[i] = DEFAULT_EXCITATION;
         }
-        aValues[i] = params[i-1];
+        aValues[i] = params[i - 1];
     }
-    pieceWiseLinearFunc.reset(new OpenSim::PiecewiseLinearFunction(numPoints+1, aTimes.getContiguousScalarData(), aValues.getContiguousScalarData(), ""));
+    pieceWiseLinearFunc.reset(new OpenSim::PiecewiseLinearFunction(numPoints + 1, aTimes.getContiguousScalarData(), 
+                            aValues.getContiguousScalarData(), ""));
 }
 
 double PWLinearFixedDt::getValue(const double t) const {

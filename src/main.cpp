@@ -54,11 +54,11 @@ int main(int argc, const char *argv[])
             resumeFlag = true;
         }
 
-        std::vector<double> weightsVec(numWeights);
+        std::vector<double> weightsVec(NUM_WEIGHTS);
         readVector(weightsVec, weightsFileName);
 
         const int numVarsPerComp = mapNumVarsPerComp[parameterization];
-        const int numDecisionVars = numVarsPerComp*NUM_COMPS*numExtFuncs+1;
+        const int numDecisionVars = numVarsPerComp * NUM_COMPS * NUM_ACTUATORS + 1;
         std::vector<double> initMean(numDecisionVars);
         #ifdef Standing
             readVector(initMean, initMeanFileName, 1, 1, 2);
@@ -75,11 +75,11 @@ int main(int argc, const char *argv[])
         const std::string plotFile = logFolder + "plotting.dat";
 
         OpenSim::ModelVisualizer::addDirToGeometrySearchPaths("../geometry");
-        addComponentsToModel(modelName, newModelName);
+        addComponentsToModel(BASE_MODEL_NAME, OPTIM_MODEL_NAME);
 
         FitFunc objectiveFunc = [&weightsVec](const double* newControls, const int numDecisionVars){
             std::unique_lock<std::mutex> locker(threadLock);
-                OpenSim::Model osimModel(newModelName);
+                OpenSim::Model osimModel(OPTIM_MODEL_NAME);
             locker.unlock();
 
             const std::vector<double> costs = runSimulation(osimModel, parameterization, 
@@ -129,7 +129,7 @@ int main(int argc, const char *argv[])
         std::cout << "Optimization Finished" << std::endl;
 
         Eigen::VectorXd optimParams = cmaparams.get_gp().pheno(cmasols.get_best_seen_candidate().get_x_dvec());
-        OpenSim::Model osimModel(newModelName);
+        OpenSim::Model osimModel(OPTIM_MODEL_NAME);
         std::vector<double> finalCosts = runSimulation(osimModel, parameterization, numDecisionVars, 
                                                         optimParams.data(), true, true, "optimResults");
 

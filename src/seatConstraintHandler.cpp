@@ -1,14 +1,15 @@
 #include "seatConstraintHandler.h"
 
-ReleaseSeatConstraint::ReleaseSeatConstraint(OpenSim::Model& m, const SimTK::ConstraintIndex index, const double threshold) : TriggeredEventHandler(SimTK::Stage::Acceleration),
-		_model(m), _forceThreshold(threshold),  _index(index) 
-	{
-		getTriggerInfo().setTriggerOnRisingSignTransition(false);
-		getTriggerInfo().setTriggerOnFallingSignTransition(true);
-	}
+ReleaseSeatConstraint::ReleaseSeatConstraint(OpenSim::Model& m, const SimTK::ConstraintIndex index, 
+						const double threshold) : TriggeredEventHandler(SimTK::Stage::Acceleration),
+						_model(m), _forceThreshold(threshold),  _index(index){
 
-	// WITNESS FUNCTION
-SimTK::Real ReleaseSeatConstraint::getValue(const SimTK::State& s) const{
+	getTriggerInfo().setTriggerOnRisingSignTransition(false);
+	getTriggerInfo().setTriggerOnFallingSignTransition(true);
+}
+
+// WITNESS FUNCTION
+SimTK::Real ReleaseSeatConstraint::getValue(const SimTK::State& s) const {
 
 	SimTK::Constraint &seatConstraint = _model.updMatterSubsystem().updConstraint(_index);
 	if(seatConstraint.isDisabled(s)){
@@ -34,12 +35,15 @@ SimTK::Real ReleaseSeatConstraint::getValue(const SimTK::State& s) const{
             values[i*6+3+j] = (bodyForcesInAncestor(i)[0])[j]; // forces on constrained body i
         }
     }
+
 	for(int i=0; i<ncm; ++i){
         values[6*ncb+i] = mobilityForces[i];
     }
+
 	const double forceOnSeatFromGroundX = values[0];
 	const double forceOnSeatFromGroundY = values[1];
-	const double signal = std::min(forceOnSeatFromGroundY, MU_STATIC * forceOnSeatFromGroundY) - fabs(forceOnSeatFromGroundX);
+	const double signal = std::min(forceOnSeatFromGroundY, 
+							MU_STATIC * forceOnSeatFromGroundY - fabs(forceOnSeatFromGroundX));
 
 	//std::cout << s.getTime() << " : " << forceOnSeatFromGroundY - _forceThreshold <<  
 	//							", "<< MU_STATIC*forceOnSeatFromGroundY-fabs(forceOnSeatFromGroundX) 
@@ -47,7 +51,7 @@ SimTK::Real ReleaseSeatConstraint::getValue(const SimTK::State& s) const{
 	return signal - _forceThreshold;
 }
 
-	// EVENT HANDLER FUNCTION
+// EVENT HANDLER FUNCTION
 void ReleaseSeatConstraint::handleEvent(SimTK::State& s, SimTK::Real accuracy, bool& terminate) const
 {
 	_model.updMatterSubsystem().updConstraint(_index).disable(s);
@@ -56,6 +60,6 @@ void ReleaseSeatConstraint::handleEvent(SimTK::State& s, SimTK::Real accuracy, b
 	std::cout << "Releasing Seat Constraint : " << seatReleaseTime << std::endl;
 }
 
-double ReleaseSeatConstraint::getSeatRleaseTime() const{
+double ReleaseSeatConstraint::getSeatRleaseTime() const {
 	return seatReleaseTime;
 }

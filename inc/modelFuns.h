@@ -43,7 +43,7 @@ std::vector<double> runSimulation(OpenSim::Model &osimModel, const Parameterizat
                                 const std::string="fileNamePrefix");
 
 #ifdef Standing
-void computeCostsStanding(std::vector<double> &costs, OpenSim::Model &osimModel, const SimTK::State &si0, 
+void computeCostsStanding(std::vector<double> &costsOutputVec, OpenSim::Model &osimModel, const SimTK::State &si0, 
                           const SimTK::State &siF, const double seatOffTime);
 
 double computeCostJointVel(const OpenSim::Model &osimModel, const SimTK::State &siF);
@@ -63,17 +63,24 @@ inline double getExpWeight(const double tau, const double t, const double T){
 };
 
 #else
-void computeCostsSitting(OpenSim::Model &osimModel, const SimTK::State si0, std::vector<double> &costs);
+void computeCostsSitting(std::vector<double> &costsOutputVec, OpenSim::Model &osimModel, const SimTK::State si0);
 SimTK::Vec2 computeCostsCoordinate(const OpenSim::TimeSeriesTable &coordTimeSeries);
 #endif
 
-//// Computes the individual costs
+// Computes the cost associated with actuator activation
 double computeCostActivation(const OpenSim::TimeSeriesTable &activationTimeSeries);
+
+// Computes the cost associated with rate of change of actuator activation
 double computeCostDiffActivation(const OpenSim::TimeSeriesTable &activationTimeSeries);
+
+// Computes the penalty for using the mechanical limits at joints
 double computeCostLimitTorque(const OpenSim::Storage &forceStorage);
+
+// Returns zmp, slip and (Ffeet-mg) costs
 SimTK::Vec3 computeCostFeet(OpenSim::Model &model, const SimTK::State &si0, const double seatOffTime);
 
 #ifdef Assisted
+// Computes the cost associated with external assistance
 double computeCostAssistance(const OpenSim::Storage &forceStorage);
 #endif
 
