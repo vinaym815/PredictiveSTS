@@ -262,10 +262,8 @@ SimTK::Vec3 computeCostFeet(OpenSim::Model &model, const SimTK::State &si0, cons
     if(seatOffTime<tF){
         const size_t seatOffInd = feetWrenchTimeSeries.getNearestRowIndexForTime(seatOffTime);
         const double maxForce = *std::min_element(forceY.begin() + seatOffInd, forceY.end());
+        const double minForce = *std::max_element(forceY.begin() + seatOffInd, forceY.end());
 
-        auto mgInd = std::upper_bound(forceY.begin()+seatOffInd, forceY.end(), bodyWeight, std::greater<double>());
-        const auto offset = std::distance(forceY.begin(), mgInd);
-        const double minForce = *std::max_element(forceY.begin() + offset, forceY.end());
         costAcc = fabs(maxForce - bodyWeight) + fabs(minForce - bodyWeight) + fabs(forceY[forceY.size()-1] - bodyWeight);
         //std::cout << fabs(maxForce-bodyWeight) << ", " << fabs(minForce-bodyWeight)<< ", "
         //            << fabs(forceY[forceY.size()-1]-bodyWeight) << std::endl;
