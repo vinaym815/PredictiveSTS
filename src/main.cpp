@@ -105,20 +105,21 @@ int main(int argc, const char *argv[])
 
         CMASolutions cmasols;
         for(int i=0; i<N_RESTARTS; ++i){
-            CMASolutions cmasols_temp;
             auto seed = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>
                             (std::chrono::high_resolution_clock::now().time_since_epoch()).count());
             cmaparams.set_seed(seed);
             cmaparams.initialize_parameters();
+            CMASolutions cmasols_temp(cmaparams);
 
             if(i==0 && resumeFlag){
-                CMASolutions resumeSolution = resumeDistribution(resumeDir, cmaparams);
-                cmasols_temp = cmaes<GenoPhenoType>(objectiveFunc, cmaparams, writeLogs, nullptr, 
-                                                    resumeSolution);
+                cmasols_temp = resumeDistribution(resumeDir, cmaparams);
             }
-            else{
-                cmasols_temp = cmaes<GenoPhenoType>(objectiveFunc, cmaparams, writeLogs);
+            if(i>0){
+                cmasols_temp.set_xmean(cmasols.xmean());
             }
+
+            cmasols_temp = cmaes<GenoPhenoType>(objectiveFunc, cmaparams, writeLogs, nullptr, 
+                                                    cmasols_temp);
 
             if(cmasols_temp.get_best_seen_candidate().get_fvalue() < 
                 cmasols.get_best_seen_candidate().get_fvalue() ||  cmasols.candidates().empty()){
