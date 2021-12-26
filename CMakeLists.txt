@@ -4,8 +4,7 @@ project(stsSynthesis,)
 cmake_minimum_required(VERSION 3.2)
 
 set( PROJ_SOURCES "src/main.cpp" "src/modelFunsCommon.cpp" "src/modelFunsStanding.cpp" "src/modelFunsSitting.cpp" "src/parameterization.cpp" 
-					"src/RegisterTypes_osimPlugin.cpp" "src/seatConstraintHandler.cpp"
-					"src/termination.cpp")
+					"src/RegisterTypes_osimPlugin.cpp" "src/seatConstraintHandler.cpp" "src/utility.cpp")
 
 set( PROJ_INC "inc/" )
 
@@ -17,21 +16,19 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
 
 include_directories(
 	${PROJ_INC}
-	/home/opensim/Libs/opensim_dependencies_install/spdlog/include
-	/home/opensim/Libs/opensim_dependencies_install/simbody/include/simbody
-	/home/opensim/Libs/opensim-install/include
-	/home/opensim/Libs/opensim-install/include/OpenSim
-	/home/opensim/Libs/opensim-install/include/OpenSim/Common
-	/home/opensim/Libs/opensim-install/include/OpenSim/Simulation/Wrap
-	/home/opensim/Libs/libcmaes/src	
-	/home/opensim/Libs/libcmaes/build/src
+	/home/vinay/libs/opensim_dependencies_install/spdlog/include
+	/home/vinay/libs/opensim_dependencies_install/simbody/include/simbody
+	/home/vinay/libs/opensim-core-4.3-install/include
+	/home/vinay/libs/opensim-core-4.3-install/include/OpenSim
+	/home/vinay/libs/libcmaes/src	
+	/home/vinay/libs/libcmaes/build/src
 	/usr/include/eigen3)
 
 link_directories(
-	/home/opensim/Libs/opensim-install/lib
-	/home/opensim/Libs/opensim_dependencies_install/spdlog/lib
-	/home/opensim/Libs/opensim_dependencies_install/simbody/lib
-	/home/opensim/Libs/libcmaes/build/src/)
+	/home/vinay/libs/opensim-core-4.3-install/lib
+	/home/vinay/libs/opensim_dependencies_install/spdlog/lib
+	/home/vinay/libs/opensim_dependencies_install/simbody/lib
+	/home/vinay/libs/libcmaes/build/src)
 
 add_executable( main ${PROJ_SOURCES} )
 

@@ -1,5 +1,5 @@
 .vscode/
-CMakeListsNewPC.txt
+CMakeListsBackup.txt
 build/.ninja_deps
 build/.ninja_log
 build/build.ninja

@@ -65,7 +65,7 @@ const std::string STD_DEV_FILE = "stdDev.txt";
 const int N_RESTARTS = 5;
 const double F_TOLERANCE = 0.5;
 const int HIST_SIZE = 250;
-const int MAX_ITER = 3000;
+const int MAX_ITER = 4000;
 
 // Log file Names
 const std::string LOG_BEST_FILE = "logBest.txt";
