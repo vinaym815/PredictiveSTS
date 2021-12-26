@@ -21,18 +21,15 @@
   #endif
 
 #else
-  const std::string BASE_MODEL_NAME = "vin_00Npct.osim";
-  const std::string OPTIM_MODEL_NAME = "vin_00Npct.osim.mod";
-  const std::string REPLAY_MODEL_NAME = "vin_00Npct_replay.osim.mod";
   //const std::string BASE_MODEL_NAME = "vin_00pct.osim";
   //const std::string OPTIM_MODEL_NAME = "vin_00pct.osim.mod";
   //const std::string REPLAY_MODEL_NAME = "vin_00pct_replay.osim.mod";
   //const std::string BASE_MODEL_NAME = "vin_20pct.osim";
   //const std::string OPTIM_MODEL_NAME = "vin_20pct.osim.mod";
   //const std::string REPLAY_MODEL_NAME = "vin_20pct_replay.osim.mod";
-  //const std::string BASE_MODEL_NAME = "vin_40pct.osim";
-  //const std::string OPTIM_MODEL_NAME = "vin_40pct.osim.mod";
-  //const std::string REPLAY_MODEL_NAME = "vin_40pct_replay.osim.mod";
+  const std::string BASE_MODEL_NAME = "vin_40pct.osim";
+  const std::string OPTIM_MODEL_NAME = "vin_40pct.osim.mod";
+  const std::string REPLAY_MODEL_NAME = "vin_40pct_replay.osim.mod";
   //const std::string BASE_MODEL_NAME = "vin_60pct.osim";
   //const std::string OPTIM_MODEL_NAME = "vin_60pct.osim.mod";
   //const std::string REPLAY_MODEL_NAME = "vin_60pct_replay.osim.mod";
