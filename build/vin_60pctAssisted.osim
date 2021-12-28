@@ -2122,7 +2122,7 @@
 					<!--Interpret direction in Ground frame if true; otherwise, body frame.-->
 					<force_is_global>true</force_is_global>
 					<!--The maximum force produced by this actuator when fully activated.-->
-					<optimal_force>400</optimal_force>
+					<optimal_force>200</optimal_force>
 					<!--Larger value means activation changes more slowly (units: seconds; default: 0.01 seconds).-->
 					<activation_time_constant>0.10000000000000001</activation_time_constant>
 					<!--Value of activation in the default state (default: 0.5).-->
@@ -2142,7 +2142,7 @@
 					<!--Interpret direction in Ground frame if true; otherwise, body frame.-->
 					<force_is_global>true</force_is_global>
 					<!--The maximum force produced by this actuator when fully activated.-->
-					<optimal_force>400</optimal_force>
+					<optimal_force>200</optimal_force>
 					<!--Larger value means activation changes more slowly (units: seconds; default: 0.01 seconds).-->
 					<activation_time_constant>0.10000000000000001</activation_time_constant>
 					<!--Value of activation in the default state (default: 0.5).-->
