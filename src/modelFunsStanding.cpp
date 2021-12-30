@@ -33,7 +33,7 @@ void computeCostsStanding(std::vector<double> &costsOutputVec, OpenSim::Model &o
 	costsOutputVec[7] = progress * feetCosts[0];
 	costsOutputVec[8] = progress * feetCosts[1];
 	#ifdef Assisted
-		costsOutputVec[9] = computeCostAssistance(forceStorage);
+		costsOutputVec[9] = progress*computeCostAssistance(forceStorage);
 	#endif
 
 	actuatorActivReporter->clearTable();

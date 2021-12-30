@@ -21,6 +21,6 @@ build/*.mod
 build/*.err
 build/*.png
 build/*.csv
-build/results/
+#build/results/
 docs/ProcessedData/*/GUIAnalysis/
 docs/Plots/__pycache__/*

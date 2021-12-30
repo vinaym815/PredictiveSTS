@@ -41,7 +41,7 @@ int main(int argc, char *argv[]){
     if ((std::string)argv[5] == "true") saveResults = true;
 
     #ifdef Standing
-        const std::vector<double> costWeights{600, 0.1, 0.3, 0.8, 175, 70, 10, 1000, 0.1, 0.2};
+        const std::vector<double> costWeights{600, 0.1, 0.3, 0.8, 175, 70, 10, 1000, 0.1, 4.0};
     #else
         const std::vector<double> costWeights{5, 4, 200, 80, 10, 2500, 1.0, 1.0};
     #endif

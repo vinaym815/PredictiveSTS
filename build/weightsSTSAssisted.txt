@@ -1,2 +1,2 @@
-# Cost Weights: comY, comX, comVel, chairForce, a, da, limitForce, ZMP, slip, assistance 
-600, 0.1, 0.3, 0.8, 175, 70, 10, 1000, 0.1, 0.4
+# Cost Weights: progress, vTf, feet-mg, chairForce, a, da, limitForce, ZMP, slip, Assitance
+600, 0.1, 0.3, 0.8, 175, 70, 10, 1000, 0.1, 4.0
