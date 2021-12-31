@@ -25,7 +25,28 @@ class file:
         colNumber = self.dataIdx[colName]
         return self.fileData[:, colNumber]
     
+    def getNumRows(self):
+        return self.fileData.shape[0]
+
+def computeMotionTimeRange(labels, thresholds, motionFileName, numHeaderLines):
+    fileData = file(labels, motionFileName, numHeaderLines)
+    time = fileData.getColumn(labels[0])
+    timeD = np.diff(time)
+    jointD = np.diff(fileData.getColumn(labels[1]))
     
+    jointVel = np.divide(jointD, timeD)
+    
+    #smoothing with rolling average
+    kernel_size = 20
+    kernel = np.ones(kernel_size) / kernel_size
+    jointVel = np.convolve(jointVel, kernel, mode='same')
+    
+    jointVelRec = np.abs(jointVel)
+    
+    startInd = np.argmax(jointVelRec>=thresholds[0])
+    endInd = jointVelRec.shape[0] - np.argmax(jointVelRec[::-1]>=thresholds[1])    
+    return time[startInd], time[endInd]
+
 def computePhaseTimes(force_file, motion_file, com_file):
     ind = np.argmax(force_file.getColumn("seatConstraint_ground_Fy") == 0)
     e1 = force_file.getColumn("time")[ind]

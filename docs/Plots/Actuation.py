@@ -91,29 +91,29 @@ for model in models:
     
     yDataNames = ["gastroc", "glut_max", "iliopsoas", "recfem", "tibant", "hamstrings", "soleus","tibant", "vasti"]
     regrexHeader = r"(\w+)/activation$"
-    file1 = file(yDataNames, "Data/"+model+".sto", 8, regrexHeader=regrexHeader)
+    file1 = file(yDataNames, "../"+model+"/"+model+".sto", 8, regrexHeader=regrexHeader)
                  
     yDataNames = ["gastroc", "glut_max", "iliopsoas", "recfem", "tibant", "hamstrings", "soleus","tibant", "vasti", 
                   "seatConstraint_ground_Fy"]
-    file2 = file(yDataNames, "Data/"+model+"_force.mot", 14)
+    file2 = file(yDataNames, "../"+model+"/"+model+"_force.mot", 14)
     
     yDataNames = ["ankle_angle_moment", "knee_angle_moment", "hip_flexion_moment"]
-    file3 = file(yDataNames, "Data/"+model+"_ID.sto", 6)
+    file3 = file(yDataNames, "../"+model+"/"+model+"_ID.sto", 6)
     
     yDataNames = ["recfem", "hamstrings", "glut_max", "iliopsoas"]
-    file4 = file(yDataNames, "Data/"+model+"_ID_Hip.sto", 11)
+    file4 = file(yDataNames, "../"+model+"/"+model+"_ID_Hip.sto", 11)
     
     yDataNames = ["gastroc", "recfem", "hamstrings", "vasti"]
-    file5 = file(yDataNames, "Data/"+model+"_ID_Knee.sto", 11)
+    file5 = file(yDataNames, "../"+model+"/"+model+"_ID_Knee.sto", 11)
     
     yDataNames = ["gastroc", "soleus", "tibant"]
-    file6 = file(yDataNames, "Data/"+model+"_ID_Ankle.sto", 11)
+    file6 = file(yDataNames, "../"+model+"/"+model+"_ID_Ankle.sto", 11)
         
     yDataNames = ["hip_flexion"]
-    file7 = file(yDataNames, "Data/"+model+".sto", 8)
+    file7 = file(yDataNames, "../"+model+"/"+model+".sto", 8)
     
     yDataNames = ["com_vel_x", "com_vel_y"]
-    file8 = file(yDataNames, "Data/"+model+"_com.mot", 14)
+    file8 = file(yDataNames, "../"+model+"/"+model+"_com.mot", 14)
     
     files.append((file1, file2, file3, file4, file5 ,file6, file7, file8))
 
@@ -268,4 +268,3 @@ for vin in files:
 for vin in files:
     maxComVelY = np.max(vin[7].getColumn("com_vel_y"))
     print(maxComVelY)
-

@@ -3,26 +3,27 @@ Open __.osim:
     1) Disable seatConstraint
     2) Delete point actuator from assited Model
 
-Open __.sto(MotionFile):
+Open **.sto(MotionFile):
+    0) states -> **pct
     1) /jointset/ankle/ankle_angle/value -> ankle_angle
     2) /jointset/walker_knee/knee_angle/value -> knee_angle
     3) /jointset/patellofemoral/knee_angle_beta/value-> knee_angle_beta
-    4) /jointset/hip/hipAngle/value -> hipAngle
+    4) /jointset/hip/hip_flexion/value -> hip_flexion
     5) /jointset/back/lumbar_extension/value -> lumbar_extension
+
+Open **_feetForces.mot
+    1) headers ->  time,Mx,My,Mz,Fx,Fy,Fz
+    2) %s/\t/,/g
 
 Open **_force.mot
     1) Pad zeros to the missing seatConstraint cells
 
-Open **_force.mot -> **_grf.mot:
+Open **_forces.mot -> **_grf.mot
     1) time -> time
     2) seatConstraint_ground_Fx -> chair_force_vx
     3) seatConstraint_ground_Fy -> chair_force_vy
     4) assistFx -> assist_force_vx 
     5) assistFy -> assist_force_vy 
-
-Open **_com.mot:
-    1) :%s/,/\t/g
-    2) copy headers and column labels from other file(force file)
 
 Assistance Visualization
     1) Add a marker to torso com

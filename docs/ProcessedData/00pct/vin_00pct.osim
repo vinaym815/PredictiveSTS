@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <OpenSimDocument Version="40000">
-	<Model name="STS_LaiArnold2017">
+	<Model name="00pctModel">
 		<!--The model's ground reference frame.-->
 		<Ground name="ground">
 			<!--List of components that this component owns and serializes.-->
@@ -19,7 +19,7 @@
 							<!--Path to a Component that satisfies the Socket 'frame' of type Frame.-->
 							<socket_frame>..</socket_frame>
 							<!--Scale factors in X, Y, Z directions respectively.-->
-							<scale_factors>1 1 1</scale_factors>
+							<scale_factors>0.94999999999999996 0.94999999999999996 0.94999999999999996</scale_factors>
 							<!--Default appearance attributes for this Geometry-->
 							<Appearance>
 								<!--The opacity used to display the geometry between 0:transparent, 1:opaque.-->
@@ -34,7 +34,7 @@
 					<!--Path to a Component that satisfies the Socket 'parent' of type C (description: The parent frame to this frame.).-->
 					<socket_parent>..</socket_parent>
 					<!--Translational offset (in meters) of this frame's origin from the parent frame's origin, expressed in the parent frame.-->
-					<translation>-0.14999999999999999 0 0</translation>
+					<translation>-0.25 0 0</translation>
 					<!--Orientation offset (in radians) of this frame in its parent frame, expressed as a frame-fixed x-y-z rotation sequence.-->
 					<orientation>-1.5707963267948966 0 0</orientation>
 				</PhysicalOffsetFrame>
@@ -186,11 +186,11 @@
 						<groups />
 					</WrapObjectSet>
 					<!--The mass of the body (kg)-->
-					<mass>11.776999999999999</mass>
+					<mass>5.8884999999999996</mass>
 					<!--The location (Vec3) of the mass center in the body frame.-->
 					<mass_center>-0.070699999999999999 0 0</mass_center>
 					<!--The elements of the inertia tensor (Vec6) as [Ixx Iyy Izz Ixy Ixz Iyz] measured about the mass_center and not the body origin.-->
-					<inertia>0.1028 0.087099999999999997 0.0579 0 0 0</inertia>
+					<inertia>0.051400000000000001 0.043549999999999998 0.02895 0 0 0</inertia>
 				</Body>
 				<Body name="femur_r">
 					<!--The geometry used to display the axes of this Frame.-->
@@ -281,11 +281,11 @@
 						<groups />
 					</WrapObjectSet>
 					<!--The mass of the body (kg)-->
-					<mass>18.602799999999998</mass>
+					<mass>9.3013999999999992</mass>
 					<!--The location (Vec3) of the mass center in the body frame.-->
 					<mass_center>0 -0.17000000000000001 0</mass_center>
 					<!--The elements of the inertia tensor (Vec6) as [Ixx Iyy Izz Ixy Ixz Iyz] measured about the mass_center and not the body origin.-->
-					<inertia>0.26779999999999998 0.070199999999999999 0.28239999999999998 0 0 0</inertia>
+					<inertia>0.13389999999999999 0.035099999999999999 0.14119999999999999 0 0 0</inertia>
 				</Body>
 				<Body name="tibia_r">
 					<!--The geometry used to display the axes of this Frame.-->
@@ -391,11 +391,11 @@
 						<groups />
 					</WrapObjectSet>
 					<!--The mass of the body (kg)-->
-					<mass>7.415</mass>
+					<mass>3.7075</mass>
 					<!--The location (Vec3) of the mass center in the body frame.-->
 					<mass_center>0 -0.1867 0</mass_center>
 					<!--The elements of the inertia tensor (Vec6) as [Ixx Iyy Izz Ixy Ixz Iyz] measured about the mass_center and not the body origin.-->
-					<inertia>0.1008 0.010200000000000001 0.1022 0 0 0</inertia>
+					<inertia>0.0504 0.0051000000000000004 0.0511 0 0 0</inertia>
 				</Body>
 				<Body name="patella_r">
 					<!--The geometry used to display the axes of this Frame.-->
@@ -429,11 +429,11 @@
 						<groups />
 					</WrapObjectSet>
 					<!--The mass of the body (kg)-->
-					<mass>0.1724</mass>
+					<mass>0.086199999999999999</mass>
 					<!--The location (Vec3) of the mass center in the body frame.-->
 					<mass_center>0.0018 0.0264 0</mass_center>
 					<!--The elements of the inertia tensor (Vec6) as [Ixx Iyy Izz Ixy Ixz Iyz] measured about the mass_center and not the body origin.-->
-					<inertia>5.7400000000000001e-06 2.622e-05 2.622e-05 0 0 0</inertia>
+					<inertia>2.8700000000000001e-06 1.311e-05 1.311e-05 0 0 0</inertia>
 				</Body>
 				<Body name="talus_r">
 					<!--The geometry used to display the axes of this Frame.-->
@@ -467,11 +467,11 @@
 						<groups />
 					</WrapObjectSet>
 					<!--The mass of the body (kg)-->
-					<mass>0.20000000000000001</mass>
+					<mass>0.10000000000000001</mass>
 					<!--The location (Vec3) of the mass center in the body frame.-->
 					<mass_center>0 0 0</mass_center>
 					<!--The elements of the inertia tensor (Vec6) as [Ixx Iyy Izz Ixy Ixz Iyz] measured about the mass_center and not the body origin.-->
-					<inertia>0.002 0.002 0.002 0 0 0</inertia>
+					<inertia>0.001 0.001 0.001 0 0 0</inertia>
 				</Body>
 				<Body name="calcn_r">
 					<!--List of components that this component owns and serializes.-->
@@ -521,11 +521,11 @@
 						<groups />
 					</WrapObjectSet>
 					<!--The mass of the body (kg)-->
-					<mass>2.5</mass>
+					<mass>1.25</mass>
 					<!--The location (Vec3) of the mass center in the body frame.-->
 					<mass_center>0.10000000000000001 0.029999999999999999 0</mass_center>
 					<!--The elements of the inertia tensor (Vec6) as [Ixx Iyy Izz Ixy Ixz Iyz] measured about the mass_center and not the body origin.-->
-					<inertia>0.0028 0.0077999999999999996 0.0082000000000000007 0 0 0</inertia>
+					<inertia>0.0014 0.0038999999999999998 0.0041000000000000003 0 0 0</inertia>
 				</Body>
 				<Body name="toes_r">
 					<!--List of components that this component owns and serializes.-->
@@ -575,11 +575,11 @@
 						<groups />
 					</WrapObjectSet>
 					<!--The mass of the body (kg)-->
-					<mass>0.43319999999999997</mass>
+					<mass>0.21659999999999999</mass>
 					<!--The location (Vec3) of the mass center in the body frame.-->
 					<mass_center>0.034599999999999999 0.0060000000000000001 -0.017500000000000002</mass_center>
 					<!--The elements of the inertia tensor (Vec6) as [Ixx Iyy Izz Ixy Ixz Iyz] measured about the mass_center and not the body origin.-->
-					<inertia>0.00020000000000000001 0.00040000000000000002 0.002 0 0 0</inertia>
+					<inertia>0.0001 0.00020000000000000001 0.001 0 0 0</inertia>
 				</Body>
 				<Body name="torso">
 					<!--The geometry used to display the axes of this Frame.-->
@@ -658,11 +658,11 @@
 						<groups />
 					</WrapObjectSet>
 					<!--The mass of the body (kg)-->
-					<mass>34.241599999999998</mass>
+					<mass>17.120799999999999</mass>
 					<!--The location (Vec3) of the mass center in the body frame.-->
 					<mass_center>-0.029999999999999999 0.32000000000000001 0</mass_center>
 					<!--The elements of the inertia tensor (Vec6) as [Ixx Iyy Izz Ixy Ixz Iyz] measured about the mass_center and not the body origin.-->
-					<inertia>1.4744999999999999 0.75549999999999995 1.4314 0 0 0</inertia>
+					<inertia>0.73724999999999996 0.37774999999999997 0.7157 0 0 0</inertia>
 				</Body>
 			</objects>
 			<groups />
@@ -718,7 +718,7 @@
 					<coordinates>
 						<Coordinate name="ankle_angle">
 							<!--The value of this coordinate before any value has been set. Rotational coordinate value is in radians and Translational in meters.-->
-							<default_value>0.43633231299857816</default_value>
+							<default_value>0.26179938779914941</default_value>
 							<!--The speed value of this coordinate before any value has been set. Rotational coordinate value is in rad/s and Translational in m/s.-->
 							<default_speed_value>0</default_speed_value>
 							<!--The minimum and maximum values that the coordinate can range between. Rotational coordinate range in radians and Translational in meters.-->
@@ -854,7 +854,7 @@
 					<coordinates>
 						<Coordinate name="knee_angle">
 							<!--The value of this coordinate before any value has been set. Rotational coordinate value is in radians and Translational in meters.-->
-							<default_value>1.7453292519943295</default_value>
+							<default_value>1.5271630954950384</default_value>
 							<!--The speed value of this coordinate before any value has been set. Rotational coordinate value is in rad/s and Translational in m/s.-->
 							<default_speed_value>0</default_speed_value>
 							<!--The minimum and maximum values that the coordinate can range between. Rotational coordinate range in radians and Translational in meters.-->
@@ -979,7 +979,7 @@
 					<coordinates>
 						<Coordinate name="knee_angle_beta">
 							<!--The value of this coordinate before any value has been set. Rotational coordinate value is in radians and Translational in meters.-->
-							<default_value>1.7453292519980053</default_value>
+							<default_value>1.5271630954950384</default_value>
 							<!--The speed value of this coordinate before any value has been set. Rotational coordinate value is in rad/s and Translational in m/s.-->
 							<default_speed_value>0</default_speed_value>
 							<!--The minimum and maximum values that the coordinate can range between. Rotational coordinate range in radians and Translational in meters.-->
@@ -1105,7 +1105,7 @@
 					<coordinates>
 						<Coordinate name="hip_flexion">
 							<!--The value of this coordinate before any value has been set. Rotational coordinate value is in radians and Translational in meters.-->
-							<default_value>1.4835298641996222</default_value>
+							<default_value>1.2217304763960306</default_value>
 							<!--The speed value of this coordinate before any value has been set. Rotational coordinate value is in rad/s and Translational in m/s.-->
 							<default_speed_value>0</default_speed_value>
 							<!--The minimum and maximum values that the coordinate can range between. Rotational coordinate range in radians and Translational in meters.-->
@@ -1163,7 +1163,7 @@
 					<coordinates>
 						<Coordinate name="lumbar_extension">
 							<!--The value of this coordinate before any value has been set. Rotational coordinate value is in radians and Translational in meters.-->
-							<default_value>3.6072194504123613e-14</default_value>
+							<default_value>-0.17453292519943295</default_value>
 							<!--The speed value of this coordinate before any value has been set. Rotational coordinate value is in rad/s and Translational in m/s.-->
 							<default_speed_value>0</default_speed_value>
 							<!--The minimum and maximum values that the coordinate can range between. Rotational coordinate range in radians and Translational in meters.-->
@@ -1246,7 +1246,7 @@
 					<!--Path to a Component that satisfies the Socket 'body_2' of type PhysicalFrame (description: A frame fixed to the second body participating in the constraint.).-->
 					<socket_body_2>/bodyset/femur_r</socket_body_2>
 					<!--Location of the point in first body specified in body_1 reference frame.-->
-					<location_body_1>-0.18276986424561084 0.51136502174459719 -0.0076545370637057849</location_body_1>
+					<location_body_1>-0.24204271628160756 0.55126537067901793 -0.0076545375500677842</location_body_1>
 					<!--Location of the point in second body specified in body_2 reference frame.-->
 					<location_body_2>0 0 0</location_body_2>
 				</PointConstraint>
@@ -1308,7 +1308,7 @@
 						</Appearance>
 					</GeometryPath>
 					<!--Maximum isometric force that the fibers can generate-->
-					<max_isometric_force>9381.1475409836003</max_isometric_force>
+					<max_isometric_force>4690.5737704918001</max_isometric_force>
 					<!--Optimal length of the muscle fibers-->
 					<optimal_fiber_length>0.058999999999999997</optimal_fiber_length>
 					<!--Resting length of the tendon-->
@@ -1419,7 +1419,7 @@
 						</Appearance>
 					</GeometryPath>
 					<!--Maximum isometric force that the fibers can generate-->
-					<max_isometric_force>6675.1672131147679</max_isometric_force>
+					<max_isometric_force>3337.583606557384</max_isometric_force>
 					<!--Optimal length of the muscle fibers-->
 					<optimal_fiber_length>0.157</optimal_fiber_length>
 					<!--Resting length of the tendon-->
@@ -1530,7 +1530,7 @@
 						</Appearance>
 					</GeometryPath>
 					<!--Maximum isometric force that the fibers can generate-->
-					<max_isometric_force>5394.6885245901758</max_isometric_force>
+					<max_isometric_force>2697.3442622950879</max_isometric_force>
 					<!--Optimal length of the muscle fibers-->
 					<optimal_fiber_length>0.1169</optimal_fiber_length>
 					<!--Resting length of the tendon-->
@@ -1647,7 +1647,7 @@
 						</Appearance>
 					</GeometryPath>
 					<!--Maximum isometric force that the fibers can generate-->
-					<max_isometric_force>4383.4819672131198</max_isometric_force>
+					<max_isometric_force>2191.7409836065599</max_isometric_force>
 					<!--Optimal length of the muscle fibers-->
 					<optimal_fiber_length>0.075899999999999995</optimal_fiber_length>
 					<!--Resting length of the tendon-->
@@ -1746,7 +1746,7 @@
 						</Appearance>
 					</GeometryPath>
 					<!--Maximum isometric force that the fibers can generate-->
-					<max_isometric_force>8210.9311475409886</max_isometric_force>
+					<max_isometric_force>4105.4655737704943</max_isometric_force>
 					<!--Optimal length of the muscle fibers-->
 					<optimal_fiber_length>0.085999999999999993</optimal_fiber_length>
 					<!--Resting length of the tendon-->
@@ -1836,7 +1836,7 @@
 						</Appearance>
 					</GeometryPath>
 					<!--Maximum isometric force that the fibers can generate-->
-					<max_isometric_force>15849.993442622939</max_isometric_force>
+					<max_isometric_force>7924.9967213114696</max_isometric_force>
 					<!--Optimal length of the muscle fibers-->
 					<optimal_fiber_length>0.043999999999999997</optimal_fiber_length>
 					<!--Resting length of the tendon-->
@@ -1938,7 +1938,7 @@
 						</Appearance>
 					</GeometryPath>
 					<!--Maximum isometric force that the fibers can generate-->
-					<max_isometric_force>4233.6363240327801</max_isometric_force>
+					<max_isometric_force>2116.81816201639</max_isometric_force>
 					<!--Optimal length of the muscle fibers-->
 					<optimal_fiber_length>0.0683</optimal_fiber_length>
 					<!--Resting length of the tendon-->
@@ -2055,7 +2055,7 @@
 						</Appearance>
 					</GeometryPath>
 					<!--Maximum isometric force that the fibers can generate-->
-					<max_isometric_force>19187.901639344262</max_isometric_force>
+					<max_isometric_force>9593.9508196721308</max_isometric_force>
 					<!--Optimal length of the muscle fibers-->
 					<optimal_fiber_length>0.11700000000000001</optimal_fiber_length>
 					<!--Resting length of the tendon-->

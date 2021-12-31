@@ -1,0 +1,14 @@
+EMG Files:
+1) Remove the Units line after labels
+
+Marker File:
+1) Copy Marker Data to TemplateMotion.trc
+2) Correct the number of frames in the trc file
+3) Delete Empty Line at the end of trc file
+4) Transform: Rotate by markers by -90 degrees around X axis using OpenSim
+
+GRF File
+1) Copy the grf data to TemplateGRFForce.mot
+1a) FP1-> Feet, FP2-> Chair
+1b) Convert torque and position to SI units
+2) Transform: Rotate by markers by -90 degrees around X axis using OpenSim

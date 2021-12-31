@@ -22,5 +22,11 @@ build/*.err
 build/*.png
 build/*.csv
 #build/results/
+docs/IK/trials/*.csv
+docs/IK/trials/*.trc
+docs/IK/trials/*.mot
+docs/IK/ikResults/*.mot
 docs/ProcessedData/*/GUIAnalysis/
-docs/Plots/__pycache__/*
+docs/Plots/__pycache__/
+docs/Plots/*.ipynb
+docs/Plots/.ipynb_checkpoints/
