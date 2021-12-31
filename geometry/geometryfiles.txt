@@ -1,0 +1,9 @@
+The follwing addtional geoemtry files were added
+to those of LaiArnoldModelfiles.
+
+Caution should be administered while using them for
+marker placement.
+
+1) l_pat.vtp -> Left patella
+2) hat_ribs_scapl.stl
+3) stool_small.stl
