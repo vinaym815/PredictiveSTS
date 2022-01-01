@@ -30,10 +30,13 @@ plt.rcParams.update({
 
 # In[3]:
 
-
-#expFiles = ["Trimmed_subjectB_folded"+str(i)+".mot" for i in range(1,7)]
-#expFiles = ["Trimmed_subjectB_natural"+str(i)+".mot" for i in range(1,7)]
-expFiles = ["Trimmed_subjectB_sides"+str(i)+".mot" for i in range(1,7)]
+expFiles = []
+for i in range(1,7):
+    expFiles.append("Trimmed_subjectB_folded"+str(i)+".mot")
+for i in range(1,7):
+    expFiles.append("Trimmed_subjectB_natural"+str(i)+".mot")
+for i in range(1,7):
+    expFiles.append("Trimmed_subjectB_sides"+str(i)+".mot")
 
 jointNames = ("hip_flexion_r", "knee_angle_r", "ankle_angle_r")
 
@@ -75,7 +78,7 @@ for i in range(len(expFiles)):
 yDataNames = ["hip_flexion", "knee_angle", "ankle_angle"]
 fileName = "../ProcessedData/00pct/00pct.sto"
 
-startTime ,endTime = computeMotionTimeRange(("time", "hip_flexion"), 
+startTime, endTime = computeMotionTimeRange(("time", "hip_flexion"), 
                                             (np.deg2rad(startThreshold), np.deg2rad(endThreshold)),
                                             fileName, 8)
 
@@ -86,13 +89,12 @@ endInd = np.argmax(simTimeData>=endTime-1e-5)
 
 simStartTime = simTimeData[startInd]
 simEndTime = simTimeData[endInd]
-print(simStartTime, simEndTime)
 
 
 # In[9]:
 
 
-fig, ax = plt.subplots(7,3, sharey='row', sharex='col',figsize=(7, 10), dpi=300)
+fig, ax = plt.subplots(19,3, sharey='row', sharex='col',figsize=(7, 10), dpi=300)
 
 for i, joint in enumerate(jointNames):    
     # Individual trial trajectory
@@ -104,17 +106,26 @@ for i, joint in enumerate(jointNames):
     
     n = np.rad2deg(1)
     simJointData = n*simMotionFile.getColumn(yDataNames[i])
-    ax[6,i].plot(simTimeData, simJointData)
-    ax[6,i].plot((simStartTime, simStartTime),(simJointData.min(),simJointData.max()), color="black",alpha=0.5)
-    ax[6,i].plot((simEndTime, simEndTime),(simJointData.min(),simJointData.max()), color="black",alpha=0.5)
+    ax[18,i].plot(simTimeData, simJointData)
+    ax[18,i].plot((simStartTime, simStartTime),(simJointData.min(),simJointData.max()), color="black",alpha=0.5)
+    ax[18,i].plot((simEndTime, simEndTime),(simJointData.min(),simJointData.max()), color="black",alpha=0.5)
     
 fig.set_tight_layout(True)
-plt.savefig("figures/Thresholds.png", format="png",transparent=False, bbox_inches = 'tight')
+plt.savefig("figures/Thresholds3.png", format="png",transparent=False, bbox_inches = 'tight')
 plt.show()
-
 
 # In[ ]:
 
+def kumar(pctVec, t1, t2):
+    val = []
+    for pct in pctVec:
+        val.append(t1+(t2-t1)*pct/100)
+    return val
+
+vin = [0,20,40,60,80, 100]
+print("vin")
+print(simStartTime, simEndTime)
+print(kumar(vin, simStartTime, simEndTime))
 
 
 

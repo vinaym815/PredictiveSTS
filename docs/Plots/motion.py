@@ -7,7 +7,7 @@
 from matplotlib import pyplot as plt
 import numpy as np
 import re
-from fileReader import file,computeMotionTimeRange
+from fileReader import file, computeMotionTimeRange, computePhaseTimes
 
 
 # In[2]:
@@ -44,6 +44,9 @@ nPoints = 100
 startThreshold = 20
 endThreshold = 20
 
+expStartEndnPointMovingAvg = 20
+simStartEndnPointMovingAvg = 1
+
 
 # In[4]:
 
@@ -60,7 +63,7 @@ for i in range(len(expFiles)):
     motionFileName = "../IK/ikResults/"+expFiles[i]
     startTime ,endTime = computeMotionTimeRange(("time", "hip_flexion_r"), 
                                                 (startThreshold,endThreshold), 
-                                                motionFileName, motionFileHeaderLines)
+                                                motionFileName, motionFileHeaderLines, expStartEndnPointMovingAvg)
     
     motionFile = file(jointNames, motionFileName, motionFileHeaderLines)
     timeData = motionFile.getColumn("time")
@@ -68,7 +71,6 @@ for i in range(len(expFiles)):
     endInd = np.argmax(timeData>=endTime-1e-5)
     fileXAxis = np.linspace(0,100, endInd-startInd)
     times.append(timeData[endInd]-timeData[startInd])
-
     
     for j, joint in enumerate(jointNames):
         jointsData[joint][:,i] = np.interp(motionXAxis, fileXAxis, motionFile.getColumn(joint)[startInd:endInd])
@@ -88,9 +90,9 @@ yDataNames = ["hip_flexion", "knee_angle", "ankle_angle", "lumbar_extension"]
 fileName = "../ProcessedData/00pct/00pct.sto"
 n = np.rad2deg(1)
 
-startTime ,endTime = computeMotionTimeRange(("time", "hip_flexion"), 
+startTime, endTime = computeMotionTimeRange(("time", "hip_flexion"), 
                                             (np.deg2rad(startThreshold), np.deg2rad(endThreshold)), 
-                                            fileName, 8)
+                                            fileName, 8, simStartEndnPointMovingAvg)
 
 simMotionFile = file(yDataNames, fileName, 8)
 timeData = simMotionFile.getColumn("time")
@@ -106,37 +108,62 @@ for i, jointName in enumerate(yDataNames):
 
 simXAxis = np.linspace(0,100, nPoints)
 
+yDataNames = ["seatConstraint_ground_Fy"]
+simForceFile = file(yDataNames, "../ProcessedData/00pct/00pct_force.mot", 14)
+(e1, e2) = computePhaseTimes(simForceFile, simMotionFile)
+indE1 = np.argmax(tEquallySpace>=e1-1e-3)
+indE2 = np.argmax(tEquallySpace>=e2-1e-3)
+e1 = motionXAxis[indE1]
+e2 = motionXAxis[indE2]
+ylim = [-100, 100]
+
+def kumar(pctVec, t1, t2):
+    val = []
+    for pct in pctVec:
+        val.append(t1+(t2-t1)*pct/100)
+    return val
+
+#vin = [0,20,40,60,80, 100]
+#print("vin")
+#print(startTime, endTime)
+#print(kumar(vin, startTime, endTime))
+
 
 # In[7]:
 
+rows = 2
+cols = 2
+limits = [[-17.5,110],[-5,90],[-15,20],[-42,10]]
 
-fig, ax = plt.subplots(4,1, sharex='col',figsize=(6, 8), dpi=150)
-axLabels = (r"$\theta_{hip}(deg)$", r"$\theta_{knee}(deg)$", r"$\theta_{ankle}(deg)$", r"$\theta_{lumbar}(deg)$")
+fig, ax = plt.subplots(rows, cols, sharex='col', figsize=(6, 4), dpi=300)
+axLabels = (r"$\theta_{hip}(^\circ)$", r"$\theta_{knee}(^\circ)$", r"$\theta_{ankle}(^\circ)$", r"$\theta_{lumbar}(^\circ)$")
 for i, joint in enumerate(jointNames):
     jointDataMat = jointsData[joint]
     mean = np.mean(jointDataMat, axis=1)
     std = np.std(jointDataMat, axis=1)
     
+    row = int(i/cols)
+    col = i%cols
+    
+    ax[row,col].plot(simXAxis, simData[joint], color="red", label="Simulation", linewidth=1)
+    ax[row,col].plot(motionXAxis, mean, label="Experiment Mean", color='blue', linestyle='dashed', linewidth=1)
+    ax[row,col].fill_between(motionXAxis, mean-2*std, mean+2*std, color = 'blue', alpha=0.1, label=r"Experiment Mean $\pm$ 2 S.D.")
+    
     ## Individual trial trajectory
-    for j in range(jointDataMat.shape[1]):
-        ax[i].plot(motionXAxis, jointDataMat[:,j], alpha=0.5)
+    #for j in range(jointDataMat.shape[1]):
+    #    ax[row,col].plot(motionXAxis, jointDataMat[:,j], alpha=0.5)
     
-    ax[i].plot(motionXAxis, mean, label="Experiment Mean", color='blue', linestyle='dashed', linewidth=1)
-    ax[i].fill_between(motionXAxis, mean-2*std, mean+2*std, color = 'blue', alpha=0.1, label="Experiment 2 S.D.")
-    #ax[i].plot(simXAxis, simData[joint], color="red", label="Predicted", linewidth=1)
+    ax[row,col].set_ylabel(axLabels[i])
     
-    ax[i].set_ylabel(axLabels[i])
-    ax[i].legend(loc='upper right')
+    ax[row,col].plot([e1,e1], ylim, linestyle='-.', color="k", alpha=0.5)
+    ax[row,col].plot([e2,e2], ylim, linestyle='-.', color="k", alpha=0.5)
+    ax[row,col].set_ylim(limits[i])
+    #ax[row,col].legend()
 
-ax[2].set_xlim([0,100])
-ax[2].set_xlabel("$\%STS$")
+#ax[3].set_ylim(0,100)
+ax[1,0].set_xlim([0,100])
+ax[1,1].set_xlim([0,100])
+ax[1,0].set_xlabel("$\%STS$")
 fig.set_tight_layout(True)
-plt.savefig("figures/JointAnglesTotal.png", format="png",transparent=False, bbox_inches = 'tight')
+plt.savefig("figures/JointAnglesComparison.png", format="png",transparent=False, bbox_inches = 'tight')
 plt.show()
-
-
-# In[ ]:
-
-
-
-

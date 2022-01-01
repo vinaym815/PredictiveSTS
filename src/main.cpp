@@ -115,7 +115,7 @@ int main(int argc, const char *argv[])
                 cmasols_temp = resumeDistribution(resumeDir, cmaparams);
             }
             if(i>0){
-                cmasols_temp.set_xmean(cmasols.xmean());
+                cmasols_temp.set_xmean(cmasols.get_best_seen_candidate().get_x_dvec());
             }
 
             cmasols_temp = cmaes<GenoPhenoType>(objectiveFunc, cmaparams, writeLogs, nullptr, 
@@ -132,7 +132,7 @@ int main(int argc, const char *argv[])
         Eigen::VectorXd optimParams = cmaparams.get_gp().pheno(cmasols.get_best_seen_candidate().get_x_dvec());
         OpenSim::Model osimModel(OPTIM_MODEL_NAME);
         std::vector<double> finalCosts = runSimulation(osimModel, parameterization, numDecisionVars, 
-                                                        optimParams.data(), true, true, "optimResults");
+                                                        optimParams.data(), true, true, logFolder+"optimTraj");
 
         const double totalCost = std::inner_product(finalCosts.begin(), finalCosts.end(), weightsVec.begin(), 0.0); 
         std::cout << "Optimized Cost : " << totalCost << std::endl;

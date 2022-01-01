@@ -21,7 +21,7 @@ build/*.mod
 build/*.err
 build/*.png
 build/*.csv
-#build/results/
+build/results/
 docs/IK/trials/*.csv
 docs/IK/trials/*.trc
 docs/IK/trials/*.mot

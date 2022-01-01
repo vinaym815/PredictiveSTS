@@ -2,6 +2,7 @@ These processing are required to get the data working with OpenSim GUI 4.1
 Open __.osim:
     1) Disable seatConstraint
     2) Delete point actuator from assited Model
+    3) Add TorsoCOM marker to the assisted Model
 
 Open **.sto(MotionFile):
     0) states -> **pct
@@ -25,7 +26,10 @@ Open **_forces.mot -> **_grf.mot
     4) assistFx -> assist_force_vx 
     5) assistFy -> assist_force_vy 
 
+Open **_com.mot
+    1) header -> time,com_x,com_y,com_z,com_vel_x,com_vel_y,com_vel_z
+    2) %s/\t/,/g
+
 Assistance Visualization
-    1) Add a marker to torso com
-    2) Output the position marker position (comTransform.xml)
-    3) marker position + assistance force -> Assist_Visualization.mot
+    1) marker position + assistance force -> Assist_Visualization.mot
+    2) Scale forces in Assist_Visualization.mot linearly

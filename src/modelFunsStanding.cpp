@@ -45,7 +45,7 @@ double computeCostJointVel(const OpenSim::Model &osimModel, const SimTK::State &
 	const double kneeVel = coordSet.get("knee_angle").getSpeedValue(siF);
 	const double ankleVel = coordSet.get("ankle_angle").getSpeedValue(siF);
 
-	return SimTK::convertRadiansToDegrees(fabs(hipVel) + fabs(kneeVel) + fabs(ankleVel));
+	return fabs(hipVel) + fabs(kneeVel) + fabs(ankleVel);
 }
 
 double computeCostChair(const OpenSim::Storage &forceStorage){

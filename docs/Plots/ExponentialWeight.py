@@ -43,24 +43,14 @@ class exponential:
 
 
 tf = 1.6
-tauBoundary = tf/24
-tauChair = tf/3 
+tauChair = tf/8.0
 tVec = np.linspace(0,tf,50)
 
-expBoundary = exponential(tauBoundary, tf)
 expChair = exponential(tauChair, tf) 
 
-plt.plot(tVec, expBoundary.computeWeights(tVec), label=r'$exp(t|\tau_{Boundary})$')
-plt.plot(tVec, expChair.computeWeights(tVec), label=r'$exp(t|\tau_{Chair})$')
-plt.xlabel(r'$Time(sec)$')
-plt.ylabel(r'$exp(t|\tau_{..})$')
+plt.plot(tVec, expChair.computeWeights(tVec), label=r'$\tau=0.2s, T=1.6s$')
+plt.xlabel(r'$t(s)$')
+plt.ylabel(r'$exp(t|\tau,T)$')
 plt.legend()
-plt.show()
-#plt.savefig("expFunc.eps", dpi=300 ,format="eps")
-
-
-# In[ ]:
-
-
-
-
+plt.savefig("./figures/expFunc.png", dpi=300, format="png")
+#plt.show()
