@@ -51,7 +51,7 @@ double computeCostChair(const OpenSim::Storage &forceStorage);
 
 // Returns the eucledian distance between two vectors
 inline double eucledianDis(const SimTK::Vec3 v1, const SimTK::Vec3 v2){
-  return std::sqrt(std::pow(v1[0]-v2[0], 2) + std::pow(v1[1]-v2[1], 2));
+    return std::sqrt(std::pow(v1[0]-v2[0], 2) + std::pow(v1[1]-v2[1], 2));
 };
 
 // Returns the exponentially weighted values for timeVec 
@@ -87,8 +87,8 @@ double computeCostAssistance(const OpenSim::Storage &forceStorage);
 // returns the adjacent_difference of vector V
 template <typename V>
 inline std::vector<double> dVector(V &vec){
-  std::vector<double> outVec(vec.size());
-  std::adjacent_difference(vec.begin(), vec.end(), outVec.begin());
-  outVec[0] = 0.0;
-  return outVec;
+    std::vector<double> outVec(vec.size());
+    std::adjacent_difference(vec.begin(), vec.end(), outVec.begin());
+    outVec[0] = 0.0;
+    return outVec;
 }

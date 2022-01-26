@@ -132,7 +132,7 @@ int main(int argc, const char *argv[])
         Eigen::VectorXd optimParams = cmaparams.get_gp().pheno(cmasols.get_best_seen_candidate().get_x_dvec());
         OpenSim::Model osimModel(OPTIM_MODEL_NAME);
         std::vector<double> finalCosts = runSimulation(osimModel, parameterization, numDecisionVars, 
-                                                        optimParams.data(), true, true, logFolder+"optimTraj");
+                                                        optimParams.data(), false, true, logFolder+"optimTraj");
 
         const double totalCost = std::inner_product(finalCosts.begin(), finalCosts.end(), weightsVec.begin(), 0.0); 
         std::cout << "Optimized Cost : " << totalCost << std::endl;
