@@ -6,13 +6,7 @@
 
 from matplotlib import pyplot as plt
 import numpy as np
-import re
 from fileReader import file, computeMotionTimeRange, computePhaseTimes
-
-import scipy as sp
-import scipy.fftpack
-from scipy import signal
-
 
 # In[2]:
 
@@ -138,29 +132,30 @@ ylim = [-15, 175]
 
 
 axLabels = (r"$F_{feet,y}(\%mg)$", r"$F_{chair,y}(\%mg)$")
-fig, ax = plt.subplots(2,1, sharex='col', figsize=(3, 4), dpi=300)
+fig, ax = plt.subplots(1,2, figsize=(6, 2.4), dpi=300)
 
 for i, force in enumerate(forceLabels):
     forceMat = forceData[force]
     mean = np.mean(forceMat, axis=1)
     std = np.std(forceMat, axis=1)
     
-    #for j in range(forceMat.shape[1]):
-    #    ax[i].plot(motionXAxis, forceMat[:,j], alpha =0.5)
+    for j in range(forceMat.shape[1]):
+        ax[i].plot(motionXAxis, forceMat[:,j], alpha=0.8)
         
-    #ax[i].plot(motionXAxis, mean, label= r"$Experiment Mean$", color='blue', linestyle='dashed', linewidth=2.5)
-    #ax[i].fill_between(motionXAxis, mean-2*std, mean+2*std, color = 'blue', label=r"$Experiment Mean \pm 2SD$", alpha=0.2) 
-    ax[i].plot(motionXAxis, -simForceData[force], color="red",label="Prediction")
+    ax[i].plot(motionXAxis, mean, label= r"$Experiment Mean$", color='blue', linestyle='dashed', linewidth=2.5)
+    ax[i].fill_between(motionXAxis, mean-2*std, mean+2*std, color = 'blue', label=r"$Experiment Mean \pm 2SD$", alpha=0.2) 
+    #ax[i].plot(motionXAxis, -simForceData[force], color="red",label="Prediction")
     
-    ax[i].plot([e1,e1], ylim, linestyle='-.', color="k", alpha=0.5)
-    ax[i].plot([e2,e2], ylim, linestyle='-.', color="k", alpha=0.5)
-    #ax[i].set_ylabel(axLabels[i])
-    #ax[i].legend()
+    #ax[i].plot([e1,e1], ylim, linestyle='-.', color="k", alpha=0.5)
+    #ax[i].plot([e2,e2], ylim, linestyle='-.', color="k", alpha=0.5)
 
-ax[1].set_xlim([0, 100])    
-#ax[1].set_xlabel(r"\%STS")
+    ax[i].set_ylabel(axLabels[i])
+    ax[i].set_xlim([0, 100])    
+    ax[i].set_ylim([-10, 160])    
+
+ax[0].set_xlabel(r"\%STS")
 fig.set_tight_layout(True)
-plt.savefig("figures/GroundForces00pct.png", format="png",transparent=False, bbox_inches = 'tight')
+plt.savefig("figures/GroundForcesExperimentF.png", format="png",transparent=False, bbox_inches = 'tight')
 plt.show()
 
 

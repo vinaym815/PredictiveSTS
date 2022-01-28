@@ -1,20 +1,9 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sat Jan 15 08:26:08 2022
-
-@author: vinay
-"""
-
-#!/usr/bin/env python
-# coding: utf-8
-
 # In[1]:
 
 
 from matplotlib import pyplot as plt
 import numpy as np
 from matplotlib.collections import LineCollection
-#from matplotlib.colors import ListedColormap
 from fileReader import file, computePhaseTimes
 
 
@@ -135,3 +124,67 @@ plt.savefig("figures/zmp_80pctAssisted.png", format="png",transparent=False, bbo
 plt.show()
 
 print(np.max(com_vel_x), np.max(com_vel_y))
+
+
+# %%
+
+simFileName = "../ProcessedData/80pctAssisted/80pctAssisted.sto"
+modelWeight = 37.5*9.81
+regrexHeader = r"(\w+)/activation$"
+colors = plt.cm.tab10(np.linspace(0, 1, 8))
+simMuscleDict = {"soleus" :("SOL", "pink"),
+              "gastroc":("GAS",colors[1]),
+              "tibant":("TA", colors[2]),
+              "recfem":("RF", colors[3]),
+              "iliopsoas":("ILPSO",colors[4]),
+              "hamstrings":("HAMS",colors[5]),
+              "glut_max":("GMAX",colors[6]),
+              "vasti":("VAS",colors[7])}
+
+yDataNames = [muscle for muscle in simMuscleDict.keys()]
+simFile = file(yDataNames, simFileName, 8, regrexHeader=regrexHeader)
+
+yDataNames = ["hip_flexion"]
+motionFile = file(yDataNames, simFileName, 8)
+
+yDataNames = ["assistFx", "assistFy", "seatConstraint_ground_Fy"]
+forceFile = file(yDataNames, "../ProcessedData/80pctAssisted/80pctAssisted_force.mot", 14)
+
+(e1, e2) = computePhaseTimes(forceFile, motionFile)
+
+#%%
+fig, axs = plt.subplots(2, 1, sharex='col', figsize=(6.5, 4.5), dpi=300)
+
+axs[0].plot(forceFile.getColumn("time"), (100.0/modelWeight)*forceFile.getColumn("assistFx"), label="Horizontal Assistance")
+axs[0].plot(forceFile.getColumn("time"), (100.0/modelWeight)*forceFile.getColumn("assistFy"), label="Vertical Assistance")
+
+for key, value in simMuscleDict.items():
+    axs[1].plot(simFile.getColumn("time"), simFile.getColumn(key), label=value[0], color=value[1])
+
+axs[0].plot([e1,e1], [-5, 400.0], linestyle='-.', color="k", alpha=0.5)
+axs[0].plot([e2,e2], [-5, 400.0], linestyle='-.', color="k", alpha=0.5)
+axs[1].plot([e1,e1], [-5, 400.0], linestyle='-.', color="k", alpha=0.5)
+axs[1].plot([e2,e2], [-5, 400.0], linestyle='-.', color="k", alpha=0.5)
+
+axs[0].set_ylabel(r"$F(\%mg)$")
+axs[1].set_ylabel(r"$a$")
+axs[1].set_xlabel(r"$t(sec)$")
+
+axs[1].set_xlim([0, 1.112])
+axs[1].set_ylim([-0.05, 1.2])
+axs[0].set_ylim([-5, 100.0])
+
+axs[0].legend(loc="upper right",prop={'size': 8})
+handles, labels = axs[1].get_legend_handles_labels()
+axs[1].legend(handles[::-1], labels[::-1], ncol=2, fontsize=7)
+
+fig.set_tight_layout(True)
+plt.savefig("figures/80pctAssisted.png", format="png",transparent=False, bbox_inches = 'tight')
+plt.show()
+
+
+# %% 
+maxAssistX = np.max(forceFile.getColumn("assistFx"))
+maxAssisty = np.max(forceFile.getColumn("assistFy"))
+print("maxAssistFx", "maxAssistFy")
+print(maxAssistX, maxAssisty)

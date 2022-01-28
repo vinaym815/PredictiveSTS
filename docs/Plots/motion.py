@@ -75,12 +75,6 @@ for i in range(len(expFiles)):
     for j, joint in enumerate(jointNames):
         jointsData[joint][:,i] = np.interp(motionXAxis, fileXAxis, motionFile.getColumn(joint)[startInd:endInd])
 
-        
-##patching the hipJointData
-#lumbarKey = jointNames.pop()
-#jointsData["hip_flexion_r"] -= jointsData[lumbarKey]
-#del jointsData[lumbarKey]
-
 
 # In[5]:
 
@@ -117,7 +111,7 @@ e1 = motionXAxis[indE1]
 e2 = motionXAxis[indE2]
 ylim = [-100, 100]
 
-def kumar(pctVec, t1, t2):
+def pctToTime(pctVec, t1, t2):
     val = []
     for pct in pctVec:
         val.append(t1+(t2-t1)*pct/100)
@@ -126,7 +120,7 @@ def kumar(pctVec, t1, t2):
 #vin = [0,20,40,60,80, 100]
 #print("vin")
 #print(startTime, endTime)
-#print(kumar(vin, startTime, endTime))
+#print(pctToTime(vin, startTime, endTime))
 
 
 # In[7]:
@@ -136,25 +130,24 @@ cols = 2
 limits = [[-17.5,110],[-5,90],[-15,20],[-42,10]]
 
 fig, ax = plt.subplots(rows, cols, sharex='col', figsize=(6, 4), dpi=300)
-axLabels = (r"$\theta_{hip}(^\circ)$", r"$\theta_{knee}(^\circ)$", r"$\theta_{ankle}(^\circ)$", r"$\theta_{lumbar}(^\circ)$")
+axLabels = (r"$\theta_{hip}$", r"$\theta_{knee}$", r"$\theta_{ankle}$", r"$\theta_{lumbar}$")
 for i, joint in enumerate(jointNames):
     jointDataMat = jointsData[joint]
     mean = np.mean(jointDataMat, axis=1)
     std = np.std(jointDataMat, axis=1)
     
-    row = int(i/cols)
+    row = i//cols
     col = i%cols
+
+    ## Individual trial trajectory
+    #for j in range(jointDataMat.shape[1]):
+    #    ax[row,col].plot(motionXAxis, jointDataMat[:,j], alpha=0.8)
     
     ax[row,col].plot(simXAxis, simData[joint], color="red", label="Simulation", linewidth=1)
     ax[row,col].plot(motionXAxis, mean, label="Experiment Mean", color='blue', linestyle='dashed', linewidth=1)
-    ax[row,col].fill_between(motionXAxis, mean-2*std, mean+2*std, color = 'blue', alpha=0.1, label=r"Experiment Mean $\pm$ 2 S.D.")
+    ax[row,col].fill_between(motionXAxis, mean-2*std, mean+2*std, color = 'blue', alpha=0.2, label=r"Experiment Mean $\pm$ 2 S.D.")
     
-    ## Individual trial trajectory
-    #for j in range(jointDataMat.shape[1]):
-    #    ax[row,col].plot(motionXAxis, jointDataMat[:,j], alpha=0.5)
-    
-    ax[row,col].set_ylabel(axLabels[i])
-    
+    ax[row,col].set_title(axLabels[i])
     ax[row,col].plot([e1,e1], ylim, linestyle='-.', color="k", alpha=0.5)
     ax[row,col].plot([e2,e2], ylim, linestyle='-.', color="k", alpha=0.5)
     ax[row,col].set_ylim(limits[i])
@@ -164,6 +157,8 @@ for i, joint in enumerate(jointNames):
 ax[1,0].set_xlim([0,100])
 ax[1,1].set_xlim([0,100])
 ax[1,0].set_xlabel("$\%STS$")
+ax[0,0].set_ylabel(r"$\theta(^\circ)$")
+ax[1,0].set_ylabel(r"$\theta(^\circ)$")
 fig.set_tight_layout(True)
 plt.savefig("figures/JointAnglesComparison.png", format="png",transparent=False, bbox_inches = 'tight')
 plt.show()
