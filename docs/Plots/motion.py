@@ -144,7 +144,7 @@ for i, joint in enumerate(jointNames):
     #    ax[row,col].plot(motionXAxis, jointDataMat[:,j], alpha=0.8)
     
     ax[row,col].plot(simXAxis, simData[joint], color="red", label="Simulation", linewidth=1)
-    ax[row,col].plot(motionXAxis, mean, label="Experiment Mean", color='blue', linestyle='dashed', linewidth=1)
+    ax[row,col].plot(motionXAxis, mean, label="Experiment Mean", color='blue', linestyle='dashed', linewidth=1.5)
     ax[row,col].fill_between(motionXAxis, mean-2*std, mean+2*std, color = 'blue', alpha=0.2, label=r"Experiment Mean $\pm$ 2 S.D.")
     
     ax[row,col].set_title(axLabels[i])

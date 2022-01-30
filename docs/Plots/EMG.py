@@ -235,12 +235,12 @@ for i, muscle in enumerate(emgData.keys()):
     row = int(i/nCols)
     col = i%nCols
     
-    for j in range(muscleDataMat.shape[1]):
-        axs[row,col].plot(motionXAxis, muscleDataMat[:,j], alpha=0.5)
+    #for j in range(muscleDataMat.shape[1]):
+    #    axs[row,col].plot(motionXAxis, muscleDataMat[:,j], alpha=0.5)
         
     axs[row,col].plot(motionXAxis, mean, label= "Experiment Mean", color='blue', linestyle='dashed', linewidth=1.5)
-    axs[row,col].fill_between(motionXAxis, mean-2*std, mean+2*std, color = 'blue', label="Experiemnt 2SD", alpha=0.3)
-    #axs[row,col].plot(simXAxis, simData[muscle], color="red",label="Simulation", linewidth=1.0)    
+    axs[row,col].fill_between(motionXAxis, mean-2*std, mean+2*std, color = 'blue', label="Experiemnt 2SD", alpha=0.2)
+    axs[row,col].plot(simXAxis, simData[muscle], color="red",label="Simulation", linewidth=1.0)    
 
     if(col==0):
         axs[row,col].set_ylabel(r"$a$")
@@ -248,19 +248,19 @@ for i, muscle in enumerate(emgData.keys()):
     axs[row,col].set_ylim([-0.05,1.05])
     axs[row,col].set_xlim([0, 100])
     axs[row,col].set_title(muscle)
-    #axs[row,col].plot([e1,e1], ylim, linestyle='-.', color="k", alpha=0.5)
-    #axs[row,col].plot([e2,e2], ylim, linestyle='-.', color="k", alpha=0.5)
+    axs[row,col].plot([e1,e1], ylim, linestyle='-.', color="k", alpha=0.5)
+    axs[row,col].plot([e2,e2], ylim, linestyle='-.', color="k", alpha=0.5)
     #axs[row,col].legend()
     
-#axs[1,3].plot(simXAxis, simData["ILPSO"], label="Simulation", linewidth=1.0)
-#axs[1,3].set_title("ILPSO")
-#axs[1,3].plot([e1,e1], ylim, linestyle='-.', color="k", alpha=0.5)
-#axs[1,3].plot([e2,e2], ylim, linestyle='-.', color="k", alpha=0.5)
+axs[1,3].plot(simXAxis, simData["ILPSO"], label="Simulation", linewidth=1.0)
+axs[1,3].set_title("ILPSO")
+axs[1,3].plot([e1,e1], ylim, linestyle='-.', color="k", alpha=0.5)
+axs[1,3].plot([e2,e2], ylim, linestyle='-.', color="k", alpha=0.5)
 
 axs[1,0].set_xlabel(r"$\%STS$")
 
 fig.set_tight_layout(True)
-plt.savefig("figures/ActivationExperiment.png", format="png",transparent=False, bbox_inches = 'tight')
+plt.savefig("figures/ActivationComparison.png", format="png",transparent=False, bbox_inches = 'tight')
 plt.show()
 
 
