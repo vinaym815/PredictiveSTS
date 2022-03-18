@@ -40,7 +40,7 @@ int main(int argc, const char *argv[])
     try {
         if (argc != 4){
             std::cout << "Inappropriate number of function arguments" << std::endl;
-            std::cout << "Correct Format: funcName.exe initialMeanFile.txt"
+            std::cout << "Correct Format: funcName.exe initialMeanFile.txt "
                         "weightsFile.txt resumeDirectory/null" << std::endl;
             exit(1);
         }
