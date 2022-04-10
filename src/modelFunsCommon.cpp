@@ -13,7 +13,7 @@ void addController(OpenSim::Model &osimModel){
     openLoopController->setName("openLoopController");
     openLoopController->setActuators(actuators);
     const int nSamples = int(T_MAX / SAMPLING_DT) + 1;
-    SimTK::Vector vecExt(nSamples, DEFAULT_EXCITATION);
+    SimTK::Vector vecExt(nSamples, 0.0);
     SimTK::Vector vecTime(nSamples);
     std::iota(vecTime.begin(), vecTime.end(), 0);
     std::for_each(vecTime.begin(), vecTime.end(), [](double &value){ value *= SAMPLING_DT;});
@@ -79,6 +79,8 @@ void setExcitations(OpenSim::Model &osimModel, SimTK::State &si0, const Paramete
     const int numActuators = actuatorExtFuncs.getSize();
     const int numVarsPerComp = mapNumVarsPerComp[parameterization];
     OpenSim::Set<OpenSim::Actuator> &actuatorSet = osimModel.updActuators();
+
+    std::mt19937 randNumGenerator(std::random_device{}());
     for(size_t i=0; i<numActuators; ++i){
         OpenSim::PiecewiseLinearFunction *actuatorExtFuncPtr = dynamic_cast<OpenSim::PiecewiseLinearFunction*>
                                                                 (&actuatorExtFuncs[i]);
@@ -93,13 +95,14 @@ void setExcitations(OpenSim::Model &osimModel, SimTK::State &si0, const Paramete
         for(size_t j=0; j<actuatorExtFuncPtr->getNumberOfPoints(); ++j){
             double excitation = parameterizationExtFuncPtr->getValue(actuatorExtFuncPtr->getX(j));
 
+            // Adding noise to the excitation
+            double stdDevNoise = BASE_NOISE+PROPORTIONAL_NOISE*excitation;
+            std::normal_distribution<double> noiseGenerator(0,stdDevNoise);
+            excitation += noiseGenerator(randNumGenerator);
+
             // Clamping is required for correct bheavior of first order dynamics
             excitation = SimTK::clamp(lowerControlLimit, excitation, upperControlLimit);
             actuatorExtFuncPtr->setY(j, excitation);
-        }
-        OpenSim::Muscle *muscle = dynamic_cast<OpenSim::Muscle*>(&actuatorSet[i]);
-        if(muscle != NULL){
-            muscle->setActivation(si0, actuatorExtFuncPtr->getY(0));
         }
     }
 };

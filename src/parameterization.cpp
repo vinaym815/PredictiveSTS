@@ -1,25 +1,18 @@
 #include "parameterization.h"
 
 // Piecewise Linear Function with fixed dt
-/*
-Can not parameterize from 0.0s as it enables model to achieve non compressive seat force without
-triggering seat release
-*/
 PWLinearFixedDt::PWLinearFixedDt(SimTK::Vector params){
 
     int numPoints = params.size();
-    const double dT = T_MAX / (numPoints);
-    SimTK::Vector aTimes(numPoints + 1);
-    SimTK::Vector aValues(numPoints + 1);
+    const double dT = T_MAX / (numPoints-1);
+    SimTK::Vector aTimes(numPoints);
+    SimTK::Vector aValues(numPoints);
 
-    for(int i=0; i<numPoints+1; ++i){
+    for(int i=0; i<numPoints; ++i){
         aTimes[i] = i * dT;
-        if (i==0){
-            aValues[i] = DEFAULT_EXCITATION;
-        }
-        aValues[i] = params[i - 1];
+        aValues[i] = params[i];
     }
-    pieceWiseLinearFunc.reset(new OpenSim::PiecewiseLinearFunction(numPoints + 1, aTimes.getContiguousScalarData(), 
+    pieceWiseLinearFunc.reset(new OpenSim::PiecewiseLinearFunction(numPoints, aTimes.getContiguousScalarData(), 
                             aValues.getContiguousScalarData(), ""));
 }
 

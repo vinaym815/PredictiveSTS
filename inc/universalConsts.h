@@ -47,16 +47,16 @@
 // Simulation Setup
 const double T0 = 0.0;             // Simulation starting time
 const double T_MAX = 1.6;
-
 const double MU_STATIC = 0.8;               // coefficient of static friction
 const double SAMPLING_DT = 0.01;             // The rate at which excitation signal is sampled(sec) from the parameterization function
 const double REPORT_INTERVAL = 0.001;         // Reporting Interval of table reporters(secs). May be made noisy to avoid peculiarities
 const double INTEGRATOR_ACCURACY = 1.0e-4;   // Desired Integration Accuracy
-const double DEFAULT_EXCITATION = 0.05;
+const double BASE_NOISE = 0.01;
+const double PROPORTIONAL_NOISE = 0.1;
 
 // Optimization Setup 
 const SimTK::Vec3 COM_TARGET{0.0346674, 0.943719, -0.0546681};
-const int NUM_COMPS = 16;                   // Number of parameterization componenets each excitation trajectory is made up of
+const int NUM_COMPS = 17;                   // Number of parameterization componenets each excitation trajectory is made up of
 const double TAU_CHAIR_FORCE = T_MAX/8.0;
 const int N_RESTARTS = 5;
 const double F_TOLERANCE = 1.0;

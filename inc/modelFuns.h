@@ -31,7 +31,6 @@ void addReporters(OpenSim::Model &osimModel);
 
 // Sets up the actuator excitation trajectories for forward simulation
 // by sampling the node points from parameterization.
-// Also sets up a0=u0
 void setExcitations(OpenSim::Model &osimModel, SimTK::State &si0,
                     const ParameterizationType parameterization,
                     const double *compValues);

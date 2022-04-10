@@ -2,11 +2,7 @@
 
 ReleaseSeatConstraint::ReleaseSeatConstraint(OpenSim::Model& m, const SimTK::ConstraintIndex index, 
 						const double threshold) : TriggeredEventHandler(SimTK::Stage::Acceleration),
-						_model(m), _forceThreshold(threshold),  _index(index){
-
-	getTriggerInfo().setTriggerOnRisingSignTransition(false);
-	getTriggerInfo().setTriggerOnFallingSignTransition(true);
-}
+						_model(m), _forceThreshold(threshold),  _index(index){}
 
 // WITNESS FUNCTION
 SimTK::Real ReleaseSeatConstraint::getValue(const SimTK::State& s) const {

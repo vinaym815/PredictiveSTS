@@ -1,0 +1,6 @@
+Adding gaussian noise to muscles
+
+stdDevNoise(t) = 0.01 + 0.1*excitation(t)
+meanNoise = 0
+
+Noise(t) = Normal(mean, stdDevNoise(t))
